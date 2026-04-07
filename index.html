@@ -2,88 +2,81 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Editor Maestro VR - Rafael</title>
+    <title>Editor Dinámico - Rafael VR</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script>
-        // COMPONENTE DE SELECCIÓN CON GIZMO
-        AFRAME.registerComponent('editor-item', {
+        // Sistema de selección real
+        AFRAME.registerComponent('clickable-asset', {
             init: function () {
-                this.el.addEventListener('click', (e) => {
-                    // Limpiar selecciones previas
-                    document.querySelectorAll('.gizmo').forEach(g => g.parentNode.removeChild(g));
-                    
-                    // Crear marco de selección (Gizmo)
-                    const gizmo = document.createElement('a-entity');
-                    gizmo.setAttribute('class', 'gizmo');
-                    gizmo.setAttribute('geometry', 'primitive: box; wireframe: true');
-                    gizmo.setAttribute('material', 'color: #00ff00; opacity: 0.5');
-                    gizmo.setAttribute('scale', '1.1 1.1 1.1');
-                    this.el.appendChild(gizmo);
-                    
+                this.el.addEventListener('click', () => {
+                    // Feedback visual: se pone una caja blanca al tocarlo
+                    document.querySelectorAll('.selection-box').forEach(el => el.parentNode.removeChild(el));
+                    const box = document.createElement('a-box');
+                    box.setAttribute('class', 'selection-box');
+                    box.setAttribute('wireframe', true);
+                    box.setAttribute('scale', '1.2 1.2 1.2');
+                    this.el.appendChild(box);
                     console.log("Seleccionado:", this.el.getAttribute('gltf-model'));
                 });
             }
         });
     </script>
-
     <style>
         body { margin: 0; overflow: hidden; background: #000; }
         .ui-panel { position: fixed; bottom: 20px; left: 20px; z-index: 1000; display: flex; gap: 10px; }
-        .btn { background: #1e293b; color: white; padding: 12px 18px; border-radius: 8px; border: 2px solid #3b82f6; cursor: pointer; font-weight: bold; font-size: 11px; }
-        .menu { position: fixed; bottom: 85px; left: 20px; width: 340px; height: 500px; background: rgba(15, 23, 42, 0.98); border: 2px solid #3b82f6; display: none; flex-direction: column; z-index: 1001; border-radius: 15px; padding: 15px; }
-        .scroll-area { overflow-y: auto; flex-grow: 1; margin-top: 10px; }
-        .hint { position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.8); color: #fff; padding: 12px; border-radius: 8px; font-size: 11px; z-index: 1000; border-right: 4px solid #22c55e; }
+        .btn { background: #1e293b; color: white; padding: 12px 20px; border-radius: 8px; border: 2px solid #3b82f6; cursor: pointer; font-weight: bold; }
+        .menu { position: fixed; bottom: 85px; left: 20px; width: 350px; height: 500px; background: rgba(15, 23, 42, 0.98); border: 2px solid #3b82f6; display: none; flex-direction: column; z-index: 1001; border-radius: 15px; padding: 15px; }
+        .scroll-v { overflow-y: auto; flex-grow: 1; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="hint">
-        <b>NAVEGACIÓN PC:</b><br>
-        • MOVER: Teclas <b>W-A-S-D</b> o <b>↑-↓-←-→</b><br>
-        • VOLAR: <b>Q</b> (Subir) / <b>E</b> (Bajar)<br>
-        • SELECCIONAR: <b>Clic Izquierdo</b> en el objeto
-    </div>
-
     <div class="ui-panel">
-        <button class="btn" onclick="toggleMenu()">📂 BIBLIOTECA</button>
-        <button class="btn" onclick="exportar()" style="border-color:#22c55e; color:#22c55e;">💾 EXPORTAR .GLB</button>
+        <button class="btn" onclick="toggleMenu()">📂 ABRIR LIBRERÍA</button>
     </div>
 
     <div id="menu" class="menu">
-        <div class="text-white text-xs font-bold border-b border-gray-700 pb-2">ASSETS: MI-METAVERSO2</div>
-        <div class="scroll-area">
+        <div class="text-white font-bold border-b border-gray-700 pb-2 uppercase text-xs">Assets: mi-metaverso2</div>
+        <div class="scroll-v">
             <div id="list" class="grid grid-cols-2 gap-2 text-white"></div>
         </div>
     </div>
 
     <a-scene raycaster="objects: .interactable" cursor="rayOrigin: mouse">
         <a-sky color="#050505"></a-sky>
-        <a-grid position="0 0 0" cellColor="#333" sectionColor="#3b82f6" opacity="0.3"></a-grid>
+        <a-grid opacity="0.2"></a-grid>
 
         <a-entity id="world-container"></a-entity>
 
-        <a-light type="ambient" intensity="0.8"></a-light>
-        <a-light type="directional" position="2 5 3" intensity="0.6"></a-light>
+        <a-light type="ambient" intensity="1"></a-light>
+        <a-light type="directional" position="2 4 3"></a-light>
 
-        <a-entity id="rig" movement-controls="speed: 0.3; fly: true">
-            <a-entity camera 
-                      position="0 1.6 5" 
-                      look-controls="pointerLockEnabled: false"
-                      wasd-controls="acceleration: 100; enabled: true">
-            </a-entity>
+        <a-entity id="rig" position="0 0 5" movement-controls="fly: true; speed: 0.3">
+            <a-entity id="my-camera" camera look-controls="pointerLockEnabled: false" wasd-controls="acceleration: 100;"></a-entity>
         </a-entity>
     </a-scene>
 
 <script>
-// LISTA REAL RECONSTRUIDA DE TU REPO
+// LISTA EXTRAÍDA DE TU GITHUB (mi-metaverso2)
 const assets = [
-    "Axe Stone.glb", "Bamboo medium.glb", "Bamboo.glb", "Big Crystal.glb", "Brick block.glb", 
-    "Bush.glb", "Chest open.glb", "Chicken.glb", "Crate.glb", "Crystal block.glb", "Dead Tree.glb", 
-    "Dog.glb", "Flowers.glb", "Grass.glb", "Mushroom.glb", "Pig.glb", "Rock.glb", "Steve.glb", 
-    "Sword Diamond.glb", "Zombie.glb", "vagoneta.glb"
+    "Axe Stone.glb", "Bamboo medium.glb", "Bamboo-xBPj13w3JQ.glb", "Bamboo.glb", "Big Crystal.glb", 
+    "Blank block.glb", "Brick block.glb", "Bush.glb", "Button.glb", "Cat.glb", "Cheese block.glb", 
+    "Chest open.glb", "Chicken.glb", "Coal block.glb", "Crate.glb", "Crystal block.glb", "Crystal.glb", 
+    "Cube Guy Character.glb", "Cubic Woman Character.glb", "Dead Tree-4E3IOActVF.glb", 
+    "Dead Tree-9dGXS7GrWc.glb", "Dead Tree.glb", "Demon.glb", "Diamond Axe.glb", "Diamond block.glb", 
+    "Diamond Pickaxe.glb", "Diamond Shovel.glb", "Dirt block.glb", "Dog.glb", "Fence Center.glb", 
+    "Fence Corner.glb", "Fence End.glb", "Fence T.glb", "Flowers-0mxlGKYE9P.glb", "Flowers.glb", 
+    "Giant.glb", "Goblin.glb", "Gold Axe.glb", "Gold Sword.glb", "Grass block.glb", "Grass small.glb", 
+    "Grass.glb", "Grey Bricks.glb", "Hedgehog.glb", "Horse.glb", "Ice block.glb", "Key.glb", "Lever.glb", 
+    "Metal block.glb", "Metal door.glb", "Mushroom.glb", "Pickaxe Gold.glb", "Pickaxe Wood.glb", 
+    "Pig.glb", "Plant-n31PjUy6Ra.glb", "Plant.glb", "Raccoon.glb", "Rail Corner.glb", "Rail Incline.glb", 
+    "Rail Straight.glb", "Rock-Xx1Jkg77vJ.glb", "Rock.glb", "Sheep.glb", "Shovel Gold.glb", "Skeleton.glb", 
+    "Snow block.glb", "Steve.glb", "Stone block.glb", "Stone pickaxe.glb", "Stone shovel.glb", 
+    "Sword Diamond.glb", "Sword Stone.glb", "Tree-ahBEW2RRgq.glb", "Tree-s8XdT4FOZz.glb", "Tree.glb", 
+    "Wolf.glb", "Wood Axe.glb", "Wood Chest.glb", "Wood planks block.glb", "Wood shovel.glb", 
+    "Wood sword.glb", "Yeti.glb", "Zombie.glb", "vagoneta.glb"
 ];
 
 function toggleMenu() {
@@ -97,36 +90,44 @@ function render() {
     l.innerHTML = "";
     assets.forEach(name => {
         const d = document.createElement('div');
-        d.className = "bg-slate-800 p-2 rounded cursor-pointer hover:bg-blue-600 border border-white/5 text-center text-[9px]";
-        d.innerHTML = `📦<br>${name.replace('.glb','')}`;
+        d.className = "bg-slate-800 p-2 rounded cursor-pointer hover:bg-blue-600 text-center text-[10px]";
+        d.innerHTML = `📦<br>${name.split('.')[0]}`;
         d.onclick = (e) => { e.stopPropagation(); spawn(name); };
         l.appendChild(d);
     });
 }
 
 function spawn(name) {
-    const w = document.getElementById('world-container');
+    const world = document.getElementById('world-container');
+    const rig = document.getElementById('rig'); // El padre de la cámara
+    
+    // Obtenemos tu posición actual en el mundo
+    const currentPos = rig.object3D.position;
+    
     const entity = document.createElement('a-entity');
     
-    // Lo ponemos 3 metros delante de la cámara
-    entity.setAttribute('position', "0 0.5 -3");
+    // Lo colocamos justo donde estás tú, pero 2 metros por delante (eje Z)
+    // Y un poco hacia abajo para que no te tape la cara (y: 0.5)
+    entity.setAttribute('position', {
+        x: currentPos.x, 
+        y: 0.5, 
+        z: currentPos.z - 2
+    });
+    
     entity.setAttribute('gltf-model', `url(mi-metaverso2/${name})`);
     entity.setAttribute('class', 'interactable');
-    entity.setAttribute('editor-item', ''); 
+    entity.setAttribute('clickable-asset', '');
 
-    // Ajuste de escala automático para que las margaritas no sean palmeras
+    // Escala automática para plantas
     if(name.toLowerCase().includes("flower") || name.toLowerCase().includes("grass") || name.toLowerCase().includes("bamboo")) {
         entity.setAttribute('scale', '0.2 0.2 0.2');
     } else {
         entity.setAttribute('scale', '1 1 1');
     }
 
-    w.appendChild(entity);
+    world.appendChild(entity);
+    console.log(`Aparecido ${name} en X:${currentPos.x} Z:${currentPos.z-2}`);
     toggleMenu();
-}
-
-function exportar() {
-    document.querySelector('a-scene').components['gltf-exporter'].export();
 }
 </script>
 </body>
