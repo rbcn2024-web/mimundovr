@@ -2,10 +2,11 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Editor WebXR - Renoverso PRO</title>
+    <title>Editor WebXR - Renoverso 5.0</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-    <script src="https://unpkg.com/aframe-exporter-component@1.0.1/dist/aframe-exporter-component.min.js"></script>
+    <script src="https://unpkg.com/aframe-look-at-component@0.8.0/dist/aframe-look-at-component.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/protyze/aframe-curve-component@master/dist/aframe-curve-component.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { margin: 0; overflow: hidden; background: #000; }
@@ -20,13 +21,13 @@
 <body>
 
     <div class="ui-panel">
-        <button onclick="toggleMenu()" class="btn-mini">ASSETS</button>
-        <button onclick="exportar()" class="btn-mini" style="border-color:#22c55e; color:#22c55e;">SAVE .GLB</button>
+        <button onclick="toggleMenu()" class="btn-mini">LIBRARY</button>
+        <button onclick="exportar()" class="btn-mini" style="border-color:#22c55e; color:#22c55e;">SAVE SCENE</button>
     </div>
 
     <div id="asset-menu" class="asset-menu">
         <div class="flex justify-between items-center border-b border-gray-700 pb-2 text-white">
-            <span class="font-bold text-xs uppercase">VR LIBRARY</span>
+            <span class="font-bold text-xs">VR EDITOR - ASSETS</span>
             <button onclick="toggleMenu()" class="text-xl">✕</button>
         </div>
         <div class="scroll-v">
@@ -34,17 +35,18 @@
         </div>
     </div>
 
-    <a-scene id="escena" gltf-exporter renderer="colorManagement: true; antialias: true;">
+    <a-scene id="escena" gltf-exporter renderer="colorManagement: true;">
         <a-sky color="#050505"></a-sky>
-        <a-grid limits="50" cellColor="#ffffff" sectionColor="#3b82f6" sectionSize="10" opacity="0.2"></a-grid>
+        <a-grid limits="50" cellColor="#ffffff" sectionColor="#3b82f6" opacity="0.2"></a-grid>
+        
         <a-entity id="world-container"></a-entity>
         
         <a-light type="ambient" intensity="1.2"></a-light>
         <a-light type="directional" position="3 10 5" intensity="1"></a-light>
 
-        <a-entity id="rig" position="0 0 0">
-            <a-entity id="camera" camera position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 65;">
-                <a-cursor color="#3b82f6" radius="0.01"></a-cursor>
+        <a-entity id="rig" position="0 0 0" movement-controls="speed: 0.2;">
+            <a-entity id="camera" camera position="0 1.6 0" look-controls wasd-controls="acceleration: 65;">
+                <a-cursor id="cursor" raycaster="objects: .interactable" color="#3b82f6" radius="0.01"></a-cursor>
             </a-entity>
             <a-entity oculus-touch-controls="hand: left"></a-entity>
             <a-entity oculus-touch-controls="hand: right" raycaster="objects: .interactable" line="color: #22c55e;"></a-entity>
@@ -52,7 +54,6 @@
     </a-scene>
 
 <script>
-// LISTA REAL EXTRAÍDA DE TU REPOSITORIO (rbcn2024-web/mimundovr/mi-metaverso2)
 const assets = [
     "Axe Stone.glb", "Bamboo medium.glb", "Bamboo-xBPj13w3JQ.glb", "Bamboo.glb", "Big Crystal.glb", 
     "Blank block.glb", "Brick block.glb", "Bush.glb", "Button.glb", "Cat.glb", "Cheese block.glb", 
@@ -72,8 +73,6 @@ const assets = [
     "Wood sword.glb", "Yeti.glb", "Zombie.glb", "vagoneta.glb"
 ];
 
-const carpeta = "mi-metaverso2";
-
 function renderMenu() {
     const container = document.getElementById('list-container');
     container.innerHTML = "";
@@ -81,28 +80,33 @@ function renderMenu() {
         const d = document.createElement('div');
         d.className = "bg-slate-800 p-2 rounded text-[9px] text-center cursor-pointer hover:bg-blue-600 border border-white/5";
         d.innerHTML = `<div class='text-xl mb-1'>📦</div>${name.replace('.glb','')}`;
-        d.onclick = () => spawn(name);
+        d.onclick = (e) => { e.stopPropagation(); spawn(name); };
         container.appendChild(d);
     });
 }
 
 function spawn(fileName) {
     const world = document.getElementById('world-container');
-    const rigPos = document.getElementById('camera').object3D.position;
+    const cameraEl = document.getElementById('camera');
+    const pos = cameraEl.object3D.position;
     
-    const entity = document.createElement('a-entity');
-    entity.setAttribute('position', {x: rigPos.x, y: 1.0, z: rigPos.z - 2.5});
+    // Creamos una entidad que agrupa el modelo y sus controles
+    const wrapper = document.createElement('a-entity');
+    
+    // Lo ponemos 3 metros delante de la cámara para que no choque
+    wrapper.setAttribute('position', {x: pos.x, y: 1.0, z: pos.z - 3});
+    wrapper.setAttribute('class', 'interactable');
     
     const modelo = document.createElement('a-entity');
-    const ruta = carpeta + "/" + fileName;
+    modelo.setAttribute('gltf-model', `url(mi-metaverso2/${fileName})`);
     
-    modelo.setAttribute('gltf-model', 'url(' + ruta + ')');
+    // Hacer que el objeto sea "agarrable" (puedes añadir scripts de drag aquí luego)
     modelo.setAttribute('class', 'interactable');
-    modelo.setAttribute('scale', '1 1 1');
     
-    entity.appendChild(modelo);
-    world.appendChild(entity);
-    console.log("Loading Asset: " + ruta);
+    wrapper.appendChild(modelo);
+    world.appendChild(wrapper);
+    
+    console.log("Spawned: " + fileName);
 }
 
 function toggleMenu() {
@@ -115,6 +119,7 @@ function exportar() {
     document.querySelector('a-scene').components['gltf-exporter'].export();
 }
 
+// Permitir que el ratón atrape la pantalla
 document.querySelector('a-scene').addEventListener('mousedown', function () {
     if (this.canvas) this.canvas.requestPointerLock();
 });
