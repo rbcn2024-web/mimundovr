@@ -2,61 +2,67 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Editor Maestro VR - Rafael</title>
+    <title>Editor Rafael - Suelo y Borrado</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/aframe-transformer-component/dist/aframe-transformer-component.min.js"></script>
 </head>
 <body style="margin: 0; overflow: hidden; background: #000;">
 
-    <div style="position: fixed; top: 20px; right: 20px; background: rgba(15, 23, 42, 0.95); color: white; padding: 15px; border-radius: 10px; z-index: 1000; font-family: monospace; border: 1px solid #3b82f6; font-size: 11px;">
-        <b style="color: #3b82f6;">CONTROLES DE GIZMO:</b><br>
-        • Clic en objeto: Seleccionar<br>
-        • Tecla <b>M</b>: Mover | <b>R</b>: Rotar | <b>S</b>: Escalar<br>
-        • Tecla <b>Suprimir</b>: Borrar seleccionado<br>
-        • WASD: Caminar
+    <div style="position: fixed; top: 20px; left: 20px; background: rgba(15, 23, 42, 0.9); color: white; padding: 15px; border-radius: 10px; z-index: 1000; font-family: sans-serif; border: 2px solid #3b82f6; font-size: 12px;">
+        <b style="color: #3b82f6;">GUÍA RÁPIDA:</b><br>
+        • <b>WASD / Flechas</b>: Caminar por el suelo.<br>
+        • <b>Mirar + X</b>: Borrar el objeto apuntado.<br>
+        • <b>Mirar + F</b>: Alejar el objeto (empujar).<br>
+        • <b>Q / E</b>: Volar / Bajar.
     </div>
 
     <div style="position: fixed; bottom: 20px; left: 20px; z-index: 1000; display: flex; gap: 10px;">
-        <button onclick="toggleMenu()" style="background: #1e293b; color: white; padding: 12px; border: 2px solid #3b82f6; border-radius: 8px; cursor: pointer; font-weight: bold;">📂 LIBRERÍA</button>
-        <button onclick="descargarEscena()" style="background: #064e3b; color: #10b981; padding: 12px; border: 2px solid #10b981; border-radius: 8px; cursor: pointer; font-weight: bold;">💾 GUARDAR MUNDO</button>
+        <button onclick="toggleMenu()" style="background: #1e293b; color: white; padding: 12px; border: 2px solid #3b82f6; border-radius: 8px; cursor: pointer; font-weight: bold;">LIBRERÍA</button>
+        <button onclick="descargarMundo()" style="background: #064e3b; color: #10b981; padding: 12px; border: 2px solid #10b981; border-radius: 8px; cursor: pointer; font-weight: bold;">GUARDAR</button>
     </div>
 
-    <div id="menu" style="position: fixed; bottom: 85px; left: 20px; width: 340px; height: 480px; background: rgba(15, 23, 42, 0.98); border: 2px solid #3b82f6; display: none; overflow-y: auto; padding: 15px; z-index: 1001; border-radius: 15px;">
+    <div id="menu" style="position: fixed; bottom: 85px; left: 20px; width: 300px; height: 400px; background: rgba(15, 23, 42, 0.98); border: 2px solid #3b82f6; display: none; overflow-y: auto; padding: 15px; z-index: 1001; border-radius: 15px;">
         <div id="list" class="grid grid-cols-2 gap-2 text-white"></div>
     </div>
 
-    <a-scene id="escena" transformer="mode: translate; shadow: true">
+    <a-scene id="escena">
         <a-sky color="#050505"></a-sky>
-        <a-grid opacity="0.2"></a-grid>
         
-        <a-entity id="mundo"></a-entity>
+        <a-grid position="0 0 0" rotation="-90 0 0" width="1000" height="1000" static-body></a-grid>
+        
+        <a-entity id="contenedor-mundo"></a-entity>
 
         <a-light type="ambient" intensity="1"></a-light>
         <a-light type="directional" position="2 4 3"></a-light>
 
         <a-entity id="rig" position="0 0 5">
             <a-entity id="camera" camera look-controls wasd-controls="acceleration: 100">
-                <a-cursor raycaster="objects: .interactable" color="#3b82f6"></a-cursor>
+                <a-cursor id="puntero" raycaster="objects: .interactable" color="#3b82f6"></a-cursor>
             </a-entity>
         </a-entity>
     </a-scene>
 
 <script>
 const assets = ["Axe Stone.glb", "Bamboo.glb", "Brick block.glb", "Bush.glb", "Chest open.glb", "Crate.glb", "Flowers.glb", "Grass.glb", "Steve.glb", "Zombie.glb", "vagoneta.glb"];
-let seleccionado = null;
+let objetoVisto = null;
 
-// Escuchar cambios de modo del Gizmo
+// Detectar qué miramos
+document.getElementById('puntero').addEventListener('raycaster-intersection', (e) => { objetoVisto = e.detail.els[0]; });
+document.getElementById('puntero').addEventListener('raycaster-intersection-cleared', () => { objetoVisto = null; });
+
+// Teclas de acción
 window.addEventListener('keydown', (e) => {
-    const scene = document.querySelector('a-scene');
-    if (e.key.toLowerCase() === 'm') scene.setAttribute('transformer', 'mode', 'translate');
-    if (e.key.toLowerCase() === 'r') scene.setAttribute('transformer', 'mode', 'rotate');
-    if (e.key.toLowerCase() === 's') scene.setAttribute('transformer', 'mode', 'scale');
+    if (!objetoVisto) return;
     
-    // Borrar objeto seleccionado
-    if ((e.key === 'Delete' || e.key === 'Backspace') && seleccionado) {
-        seleccionado.parentNode.removeChild(seleccionado);
-        seleccionado = null;
+    // X para Borrar
+    if (e.key.toLowerCase() === 'x') {
+        objetoVisto.parentNode.removeChild(objetoVisto);
+    }
+    
+    // F para Alejar/Empujar el objeto
+    if (e.key.toLowerCase() === 'f') {
+        let p = objetoVisto.getAttribute('position');
+        objetoVisto.setAttribute('position', {x: p.x, y: p.y, z: p.z - 0.5});
     }
 });
 
@@ -80,45 +86,40 @@ function render() {
 
 function spawn(name) {
     const camera = document.getElementById('camera');
-    const world = document.getElementById('mundo');
+    const world = document.getElementById('contenedor-mundo');
     const entity = document.createElement('a-entity');
     
     entity.setAttribute('gltf-model', `url(mi-metaverso2/${name})`);
     entity.setAttribute('class', 'interactable');
     
-    // Posicionamiento relativo a la cámara
+    // 1. Pegar a la cámara para heredar posición
     camera.appendChild(entity);
-    entity.setAttribute('position', '0 -0.5 -3');
+    entity.setAttribute('position', '0 -0.5 -2.5'); // Un poco lejos para ver bien
     
+    // 2. Soltar en el mundo
     setTimeout(() => {
-        const pos = new THREE.Vector3();
-        entity.object3D.getWorldPosition(pos);
-        const rot = new THREE.Quaternion();
-        entity.object3D.getWorldQuaternion(rot);
+        const p = new THREE.Vector3();
+        entity.object3D.getWorldPosition(p);
+        const r = new THREE.Quaternion();
+        entity.object3D.getWorldQuaternion(r);
         
         world.appendChild(entity);
-        entity.object3D.position.copy(pos);
-        entity.object3D.quaternion.copy(rot);
+        entity.object3D.position.copy(p);
+        entity.object3D.quaternion.copy(r);
         
         if(name.match(/flower|grass|bamboo/i)) entity.setAttribute('scale', '0.2 0.2 0.2');
-
-        // Al hacer clic, lo marcamos como seleccionado para el Gizmo
-        entity.addEventListener('mousedown', () => {
-            seleccionado = entity;
-        });
     }, 20);
 
     toggleMenu();
 }
 
-function descargarEscena() {
-    const contenido = document.getElementById('mundo').innerHTML;
-    const fullHTML = `<!DOCTYPE html><html><head><script src="https://aframe.io/releases/1.4.2/aframe.min.js"><\/script></head><body><a-scene><a-sky color="#050505"></a-sky><a-grid opacity="0.2"></a-grid>${contenido}</a-scene></body></html>`;
-    const blob = new Blob([fullHTML], {type: 'text/html'});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'mundo_rafael.html';
-    link.click();
+function descargarMundo() {
+    const html = `<html><head><script src="https://aframe.io/releases/1.4.2/aframe.min.js"><\/script></head><body><a-scene><a-sky color="#050505"></a-sky><a-grid></a-grid>${document.getElementById('contenedor-mundo').innerHTML}</a-scene></body></html>`;
+    const blob = new Blob([html], {type: 'text/html'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'mi_metaverso.html';
+    a.click();
 }
 </script>
 </body>
