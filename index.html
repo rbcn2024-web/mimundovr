@@ -1,150 +1,114 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Editor WebXR Renoverso - PRO</title>
+    <title>Editor WebXR - Renoverso PRO</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="https://unpkg.com/aframe-exporter-component@1.0.1/dist/aframe-exporter-component.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
+        body { margin: 0; overflow: hidden; background: #000; }
         .ui-panel { position: fixed; bottom: 20px; left: 20px; display: flex; gap: 10px; z-index: 10000; }
-        .btn-mini {
-            pointer-events: auto; background: #1e293b; color: white; padding: 10px 18px;
-            border-radius: 8px; font-weight: bold; font-size: 12px; border: 2px solid #3b82f6;
-            cursor: pointer; text-transform: uppercase;
-        }
-        .btn-save { border-color: #22c55e; color: #22c55e; }
-        .asset-menu {
-            position: fixed; bottom: 85px; left: 20px; width: 300px; height: 420px;
-            background: rgba(15, 23, 42, 0.98); border-radius: 15px; padding: 15px;
-            display: none; flex-direction: column; z-index: 10001; border: 2px solid #3b82f6;
-        }
-        .scroll-v { overflow-y: auto !important; height: 100%; margin-top: 10px; padding-right: 5px; }
-        .scroll-v::-webkit-scrollbar { width: 8px; }
-        .scroll-v::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        .btn-mini { background: #1e293b; color: white; padding: 10px 18px; border-radius: 8px; font-weight: bold; border: 2px solid #3b82f6; cursor: pointer; font-size: 12px; }
+        .asset-menu { position: fixed; bottom: 85px; left: 20px; width: 320px; height: 500px; background: rgba(15, 23, 42, 0.98); border-radius: 15px; padding: 15px; display: none; flex-direction: column; z-index: 10001; border: 2px solid #3b82f6; }
+        .scroll-v { overflow-y: auto !important; height: 100%; margin-top: 10px; }
+        .scroll-v::-webkit-scrollbar { width: 6px; }
         .scroll-v::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; }
-        a-scene { width: 100%; height: 100vh; }
     </style>
 </head>
-<body style="margin: 0; overflow: hidden; background: #000;">
+<body>
 
     <div class="ui-panel">
-        <button onclick="toggleMenu()" class="btn-mini">Recursos</button>
-        <button onclick="exportar()" class="btn-mini btn-save">Guardar Escena</button>
+        <button onclick="toggleMenu()" class="btn-mini">ASSETS</button>
+        <button onclick="exportar()" class="btn-mini" style="border-color:#22c55e; color:#22c55e;">SAVE .GLB</button>
     </div>
 
     <div id="asset-menu" class="asset-menu">
         <div class="flex justify-between items-center border-b border-gray-700 pb-2 text-white">
-            <span id="nav-title" class="font-bold text-xs uppercase tracking-tighter">Librería de Objetos</span>
+            <span class="font-bold text-xs uppercase">VR LIBRARY</span>
             <button onclick="toggleMenu()" class="text-xl">✕</button>
         </div>
-        <button id="back-btn" onclick="renderRaiz()" class="hidden w-full bg-blue-900/60 text-blue-100 text-[10px] py-2 my-2 rounded border border-blue-500">⬅ VOLVER</button>
         <div class="scroll-v">
-            <div id="list-container" class="grid grid-cols-2 gap-3 text-white pb-10"></div>
+            <div id="list-container" class="grid grid-cols-2 gap-2 text-white pb-10"></div>
         </div>
     </div>
 
-    <a-scene id="escena" gltf-exporter vr-mode-ui="enabled: true" renderer="colorManagement: true; antialias: true;">
+    <a-scene id="escena" gltf-exporter renderer="colorManagement: true; antialias: true;">
         <a-sky color="#050505"></a-sky>
-
         <a-grid limits="50" cellColor="#ffffff" sectionColor="#3b82f6" sectionSize="10" opacity="0.2"></a-grid>
-
         <a-entity id="world-container"></a-entity>
         
-        <a-light type="ambient" intensity="0.9"></a-light>
-        <a-light type="directional" position="5 10 7" intensity="1"></a-light>
+        <a-light type="ambient" intensity="1.2"></a-light>
+        <a-light type="directional" position="3 10 5" intensity="1"></a-light>
 
-        <a-entity id="rig" position="0 0 0" movement-controls="speed: 0.3;">
-            <a-entity id="camera" camera position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 65;"></a-entity>
+        <a-entity id="rig" position="0 0 0">
+            <a-entity id="camera" camera position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 65;">
+                <a-cursor color="#3b82f6" radius="0.01"></a-cursor>
+            </a-entity>
             <a-entity oculus-touch-controls="hand: left"></a-entity>
-            <a-entity oculus-touch-controls="hand: right" raycaster="objects: .interactable" line="color: #3b82f6;"></a-entity>
+            <a-entity oculus-touch-controls="hand: right" raycaster="objects: .interactable" line="color: #22c55e;"></a-entity>
         </a-entity>
     </a-scene>
 
 <script>
-const biblioteca = {
-    "mi-metaverso1": ["modelo1", "modelo2", "pino", "roca", "casa", "suelo", "valla", "fuente"],
-    "mi-metaverso2": [
-        "Axe Stone.glb", "Bambú medio.glb", "Bambú-xBPj13w3JQ.glb", "Bambú.glb", "Cristal grande.glb", 
-        "Bloque en blanco.glb", "Bloque de ladrillo.glb", "Bush.glb", "Botón.glb", "Cat.glb", 
-        "Bloque de queso.glb", "Pecho abierto.glb", "Pollo.glb", "Bloque de carbón.glb", "Caja.glb", 
-        "Bloque de cristal.glb", "Cristal.glb", "Personaje Cube Guy.glb", "Personaje de mujer cúbica.glb", 
-        "Árbol muerto-4E3IOActVF.glb", "Árbol muerto-9dGXS7GrWc.glb", "Árbol muerto.glb", "Demonio.glb", 
-        "Hacha de diamante.glb", "Bloque de diamante.glb", "Pico de diamante.glb", "Pala de diamante.glb", 
-        "Bloque de tierra.glb", "Perro.glb", "Centro de cercas.glb", "Esquina de la valla.glb", 
-        "Fin de la valla.glb", "Valla T.glb", "Flores-0mxlGKYE9P.glb", "Flores.glb", "Gigante.glb", 
-        "Goblin.glb", "Hacha de oro.glb", "Espada de oro.glb", "Bloque de césped.glb", "Hierba pequeña.glb", 
-        "Hierba.glb", "Ladrillos grises.glb", "Erizo.glb", "Caballo.glb", "Bloque de hielo.glb", 
-        "Clave.glb", "Palanca.glb", "Bloque de metal.glb", "Puerta metálica.glb", "Champiñón.glb", 
-        "Pico de oro.glb", "Pico de madera.glb", "Cerdo.glb", "Planta-n31PjUy6Ra.glb", "Planta.glb", 
-        "Mapache.glb", "Rail Corner.glb", "Inclinación ferroviaria.glb", "Riel recto.glb", 
-        "Roca-Xx1Jkg77vJ.glb", "Roca.glb", "Oveja.glb", "Pala Oro.glb", "Esqueleto.glb", 
-        "Bloque de nieve.glb", "Steve.glb", "Bloque de piedra.glb", "Pico de piedra.glb", 
-        "Pala de piedra.glb", "Espada Diamante.glb", "Piedra de espada.glb", "Árbol-ahBEW2RRgq.glb", 
-        "Árbol-s8XdT4FOZz.glb", "Árbol.glb", "Lobo.glb", "Hacha de madera.glb", "Cofre de madera.glb", 
-        "Bloque de tablones de madera.glb", "Pala de madera.glb", "Espada de madera.glb", "Yeti.glb", 
-        "Zombie.glb", "vagoneta.glb"
-    ]
-};
+// LISTA REAL EXTRAÍDA DE TU REPOSITORIO (rbcn2024-web/mimundovr/mi-metaverso2)
+const assets = [
+    "Axe Stone.glb", "Bamboo medium.glb", "Bamboo-xBPj13w3JQ.glb", "Bamboo.glb", "Big Crystal.glb", 
+    "Blank block.glb", "Brick block.glb", "Bush.glb", "Button.glb", "Cat.glb", "Cheese block.glb", 
+    "Chest open.glb", "Chicken.glb", "Coal block.glb", "Crate.glb", "Crystal block.glb", "Crystal.glb", 
+    "Cube Guy Character.glb", "Cubic Woman Character.glb", "Dead Tree-4E3IOActVF.glb", 
+    "Dead Tree-9dGXS7GrWc.glb", "Dead Tree.glb", "Demon.glb", "Diamond Axe.glb", "Diamond block.glb", 
+    "Diamond Pickaxe.glb", "Diamond Shovel.glb", "Dirt block.glb", "Dog.glb", "Fence Center.glb", 
+    "Fence Corner.glb", "Fence End.glb", "Fence T.glb", "Flowers-0mxlGKYE9P.glb", "Flowers.glb", 
+    "Giant.glb", "Goblin.glb", "Gold Axe.glb", "Gold Sword.glb", "Grass block.glb", "Grass small.glb", 
+    "Grass.glb", "Grey Bricks.glb", "Hedgehog.glb", "Horse.glb", "Ice block.glb", "Key.glb", "Lever.glb", 
+    "Metal block.glb", "Metal door.glb", "Mushroom.glb", "Pickaxe Gold.glb", "Pickaxe Wood.glb", 
+    "Pig.glb", "Plant-n31PjUy6Ra.glb", "Plant.glb", "Raccoon.glb", "Rail Corner.glb", "Rail Incline.glb", 
+    "Rail Straight.glb", "Rock-Xx1Jkg77vJ.glb", "Rock.glb", "Sheep.glb", "Shovel Gold.glb", "Skeleton.glb", 
+    "Snow block.glb", "Steve.glb", "Stone block.glb", "Stone pickaxe.glb", "Stone shovel.glb", 
+    "Sword Diamond.glb", "Sword Stone.glb", "Tree-ahBEW2RRgq.glb", "Tree-s8XdT4FOZz.glb", "Tree.glb", 
+    "Wolf.glb", "Wood Axe.glb", "Wood Chest.glb", "Wood planks block.glb", "Wood shovel.glb", 
+    "Wood sword.glb", "Yeti.glb", "Zombie.glb", "vagoneta.glb"
+];
 
-function toggleMenu() {
-    const m = document.getElementById('asset-menu');
-    m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
-    if(m.style.display === 'flex') renderRaiz();
-}
+const carpeta = "mi-metaverso2";
 
-function renderRaiz() {
-    const c = document.getElementById('list-container');
-    const b = document.getElementById('back-btn');
-    const t = document.getElementById('nav-title');
-    c.innerHTML = ""; b.classList.add('hidden'); t.innerText = "CATEGORÍAS";
-
-    Object.keys(biblioteca).forEach(cat => {
+function renderMenu() {
+    const container = document.getElementById('list-container');
+    container.innerHTML = "";
+    assets.forEach(name => {
         const d = document.createElement('div');
-        d.className = "bg-gray-800 p-5 rounded-xl text-[10px] text-center cursor-pointer hover:bg-blue-600 border border-blue-900 transition";
-        d.innerHTML = `<div class='text-3xl mb-2'>📁</div>${cat}`;
-        d.onclick = () => renderSub(cat);
-        c.appendChild(d);
+        d.className = "bg-slate-800 p-2 rounded text-[9px] text-center cursor-pointer hover:bg-blue-600 border border-white/5";
+        d.innerHTML = `<div class='text-xl mb-1'>📦</div>${name.replace('.glb','')}`;
+        d.onclick = () => spawn(name);
+        container.appendChild(d);
     });
 }
 
-function renderSub(cat) {
-    const c = document.getElementById('list-container');
-    const b = document.getElementById('back-btn');
-    const t = document.getElementById('nav-title');
-    c.innerHTML = ""; b.classList.remove('hidden'); t.innerText = cat;
-
-    biblioteca[cat].forEach(item => {
-        const d = document.createElement('div');
-        d.className = "bg-slate-800 p-3 rounded-lg text-[9px] text-center cursor-pointer hover:bg-green-700 border border-white/10 transition";
-        d.innerHTML = `<div class='text-2xl mb-1'>📦</div>${item}`;
-        d.onclick = () => spawn(cat, item);
-        c.appendChild(d);
-    });
-}
-
-function spawn(cat, name) {
+function spawn(fileName) {
     const world = document.getElementById('world-container');
-    const rig = document.getElementById('rig').object3D.position;
+    const rigPos = document.getElementById('camera').object3D.position;
     
     const entity = document.createElement('a-entity');
-    // Generar a la altura del pecho (1.2m) y 2 metros adelante
-    entity.setAttribute('position', `${rig.x} 1.2 ${rig.z - 2}`);
+    entity.setAttribute('position', {x: rigPos.x, y: 1.0, z: rigPos.z - 2.5});
     
     const modelo = document.createElement('a-entity');
-    // Forzamos ruta directa y nombre exacto
-    const ruta = cat + "/" + name;
+    const ruta = carpeta + "/" + fileName;
     
-    modelo.setAttribute('gltf-model', ruta);
+    modelo.setAttribute('gltf-model', 'url(' + ruta + ')');
     modelo.setAttribute('class', 'interactable');
-    // Escala equilibrada: Ni gigante ni invisible
     modelo.setAttribute('scale', '1 1 1');
     
     entity.appendChild(modelo);
     world.appendChild(entity);
-    console.log("Cargando modelo en: " + ruta);
+    console.log("Loading Asset: " + ruta);
+}
+
+function toggleMenu() {
+    const m = document.getElementById('asset-menu');
+    m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
+    if(m.style.display === 'flex') renderMenu();
 }
 
 function exportar() {
@@ -152,7 +116,7 @@ function exportar() {
 }
 
 document.querySelector('a-scene').addEventListener('mousedown', function () {
-    this.canvas.requestPointerLock();
+    if (this.canvas) this.canvas.requestPointerLock();
 });
 </script>
 </body>
