@@ -1,96 +1,86 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Editor WebXR - Renoverso 6.0</title>
+    <title>Editor PC - Puntero Libre</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
-    <script src="https://unpkg.com/aframe-exporter-component@1.0.1/dist/aframe-exporter-component.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        .ui-panel { position: fixed; bottom: 20px; left: 20px; z-index: 1000; display: flex; gap: 10px; }
+        .btn { background: #1e293b; color: white; padding: 12px; border-radius: 8px; border: 2px solid #3b82f6; cursor: pointer; }
+        .menu { position: fixed; bottom: 80px; left: 20px; width: 300px; height: 400px; background: rgba(15, 23, 42, 0.9); border: 2px solid #3b82f6; display: none; overflow-y: auto; padding: 15px; z-index: 1001; }
+    </style>
 </head>
-<body style="margin: 0; overflow: hidden; background: #000;">
+<body>
 
-    <div style="position: fixed; bottom: 20px; left: 20px; display: flex; gap: 10px; z-index: 10000;">
-        <button onclick="toggleMenu()" style="background: #1e293b; color: white; padding: 12px; border-radius: 8px; border: 2px solid #3b82f6; cursor: pointer;">LIBRERÍA</button>
-        <button onclick="exportar()" style="background: #1e293b; color: #22c55e; padding: 12px; border-radius: 8px; border: 2px solid #22c55e; cursor: pointer;">GUARDAR ESCENA</button>
+    <div class="ui-panel">
+        <button class="btn" onclick="toggleMenu()">LIBRARY</button>
     </div>
 
-    <div id="asset-menu" style="position: fixed; bottom: 85px; left: 20px; width: 300px; height: 400px; background: rgba(15, 23, 42, 0.95); border-radius: 15px; padding: 15px; display: none; flex-direction: column; z-index: 10001; border: 2px solid #3b82f6; overflow-y: auto;">
-        <div id="list-container" class="grid grid-cols-2 gap-2 text-white"></div>
+    <div id="menu" class="menu">
+        <div id="list" class="grid grid-cols-2 gap-2 text-white text-[10px]"></div>
     </div>
 
-    <a-scene id="escena" gltf-exporter renderer="colorManagement: true;">
+    <a-scene raycaster="objects: .interactable; far: 100" cursor="rayOrigin: mouse">
+        
         <a-sky color="#111"></a-sky>
-        <a-grid opacity="0.1"></a-grid>
-        
-        <a-entity id="world-container"></a-entity>
-        
-        <a-light type="ambient" intensity="1"></a-light>
-        <a-light type="directional" position="3 10 5"></a-light>
+        <a-grid opacity="0.2"></a-grid>
 
-        <a-entity id="rig" movement-controls="speed: 0.2;">
-            <a-entity id="camera" camera position="0 1.6 0" look-controls>
-                <a-cursor id="mouse-cursor" raycaster="objects: .interactable" color="#3b82f6"></a-cursor>
-            </a-entity>
-            
-            <a-entity laser-controls="hand: right" raycaster="objects: .interactable; far: 50" line="color: #22c55e; opacity: 0.7"></a-entity>
-            <a-entity oculus-touch-controls="hand: left"></a-entity>
+        <a-entity id="world"></a-entity>
+
+        <a-light type="ambient" intensity="1"></a-light>
+        <a-light type="directional" position="2 4 -3"></a-light>
+
+        <a-entity id="rig" position="0 0 5">
+            <a-entity camera look-controls="pointerLockEnabled: false" wasd-controls="acceleration: 100;"></a-entity>
         </a-entity>
     </a-scene>
 
 <script>
-const assets = ["Axe Stone.glb", "Bamboo.glb", "Big Crystal.glb", "Brick block.glb", "Bush.glb", "Chest open.glb", "Chicken.glb", "Crate.glb", "Dead Tree.glb", "Dog.glb", "Flowers.glb", "Grass.glb", "Mushroom.glb", "Pig.glb", "Rock.glb", "Steve.glb", "Zombie.glb", "vagoneta.glb"];
-
-function renderMenu() {
-    const container = document.getElementById('list-container');
-    container.innerHTML = "";
-    assets.forEach(name => {
-        const d = document.createElement('div');
-        d.style.cssText = "background: #1e293b; padding: 10px; border-radius: 5px; text-align: center; cursor: pointer; font-size: 10px; border: 1px solid #334155;";
-        d.innerHTML = `📦<br>${name}`;
-        d.onclick = () => spawn(name);
-        container.appendChild(d);
-    });
-}
-
-function spawn(fileName) {
-    const world = document.getElementById('world-container');
-    const camPos = document.getElementById('camera').object3D.position;
-    
-    const entity = document.createElement('a-entity');
-    // Aparece a la altura de tus manos y un poco adelantado
-    entity.setAttribute('position', {x: camPos.x, y: 1.2, z: camPos.z - 2});
-    
-    // IMPORTANTE: Añadimos clase interactable y un componente de escucha
-    entity.setAttribute('class', 'interactable');
-    
-    // Cargamos el modelo
-    entity.setAttribute('gltf-model', `url(mi-metaverso2/${fileName})`);
-    
-    // Escala inicial
-    entity.setAttribute('scale', '1 1 1');
-
-    // Lógica de "Click/Grip" básica: al tocarlo, se mueve un poco (test de selección)
-    entity.addEventListener('mouseenter', () => {
-        entity.setAttribute('scale', '1.1 1.1 1.1'); // Feedback visual al apuntar
-    });
-    entity.addEventListener('mouseleave', () => {
-        entity.setAttribute('scale', '1 1 1');
-    });
-
-    world.appendChild(entity);
-    toggleMenu();
-}
+const assets = ["Axe Stone.glb", "Bamboo.glb", "Big Crystal.glb", "Brick block.glb", "Bush.glb", "Chest open.glb", "Crate.glb", "Dead Tree.glb", "Zombie.glb"];
 
 function toggleMenu() {
-    const m = document.getElementById('asset-menu');
-    m.style.display = (m.style.display === 'flex') ? 'none' : 'flex';
-    if(m.style.display === 'flex') renderMenu();
+    const m = document.getElementById('menu');
+    m.style.display = m.style.display === 'block' ? 'none' : 'block';
+    if(m.style.display === 'block') render();
 }
 
-function exportar() {
-    document.querySelector('a-scene').components['gltf-exporter'].export();
+function render() {
+    const l = document.getElementById('list');
+    l.innerHTML = "";
+    assets.forEach(name => {
+        const d = document.createElement('div');
+        d.className = "bg-slate-800 p-2 rounded cursor-pointer hover:bg-blue-600 border border-white/10";
+        d.innerHTML = `📦<br>${name}`;
+        d.onclick = () => spawn(name);
+        l.appendChild(d);
+    });
+}
+
+function spawn(name) {
+    const w = document.getElementById('world');
+    const entity = document.createElement('a-entity');
+    
+    // Lo ponemos en el centro de la escena
+    entity.setAttribute('position', {x: (Math.random()-0.5)*4, y: 0, z: 0});
+    entity.setAttribute('gltf-model', `url(mi-metaverso2/${name})`);
+    entity.setAttribute('class', 'interactable');
+    entity.setAttribute('scale', '1 1 1');
+
+    // EVENTO DE CLIC CON EL RATÓN
+    entity.addEventListener('click', function() {
+        // Feedback visual: al hacer clic el objeto se ilumina o sube
+        console.log("Clic en: " + name);
+        this.setAttribute('position', {
+            x: this.object3D.position.x, 
+            y: this.object3D.position.y + 0.5, 
+            z: this.object3D.position.z
+        });
+    });
+
+    w.appendChild(entity);
+    toggleMenu();
 }
 </script>
 </body>
