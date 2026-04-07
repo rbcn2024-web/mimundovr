@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Editor WebXR Renoverso - GitHub Ready</title>
+    <title>Editor WebXR Renoverso - PRO</title>
     <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
     <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v6.1.1/dist/aframe-extras.min.js"></script>
     <script src="https://unpkg.com/aframe-exporter-component@1.0.1/dist/aframe-exporter-component.min.js"></script>
@@ -46,31 +46,24 @@
         </div>
     </div>
 
-    <a-scene id="escena" gltf-exporter vr-mode-ui="enabled: true" renderer="colorManagement: true;">
+    <a-scene id="escena" gltf-exporter vr-mode-ui="enabled: true" renderer="colorManagement: true; antialias: true;">
         <a-sky color="#050505"></a-sky>
 
-        <a-grid 
-            limits="50" 
-            cellColor="#ffffff" 
-            sectionColor="#3b82f6" 
-            sectionSize="10" 
-            opacity="0.2">
-        </a-grid>
+        <a-grid limits="50" cellColor="#ffffff" sectionColor="#3b82f6" sectionSize="10" opacity="0.2"></a-grid>
 
         <a-entity id="world-container"></a-entity>
+        
+        <a-light type="ambient" intensity="0.9"></a-light>
+        <a-light type="directional" position="5 10 7" intensity="1"></a-light>
 
-        <a-light type="ambient" intensity="0.8"></a-light>
-        <a-light type="directional" position="2 4 3" intensity="0.8"></a-light>
-
-        <a-entity id="rig" movement-controls="speed: 0.3;">
-            <a-entity camera position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 65;"></a-entity>
+        <a-entity id="rig" position="0 0 0" movement-controls="speed: 0.3;">
+            <a-entity id="camera" camera position="0 1.6 0" look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 65;"></a-entity>
             <a-entity oculus-touch-controls="hand: left"></a-entity>
             <a-entity oculus-touch-controls="hand: right" raycaster="objects: .interactable" line="color: #3b82f6;"></a-entity>
         </a-entity>
     </a-scene>
 
 <script>
-// ACTUALIZA ESTA LISTA CON LOS NOMBRES EXACTOS DE TUS ARCHIVOS EN GITHUB
 const biblioteca = {
     "mi-metaverso1": ["modelo1", "modelo2", "pino", "roca", "casa", "suelo", "valla", "fuente"],
     "mi-metaverso2": [
@@ -134,27 +127,28 @@ function renderSub(cat) {
 
 function spawn(cat, name) {
     const world = document.getElementById('world-container');
-    const rig = document.getElementById('rig').getAttribute('position');
+    const rig = document.getElementById('rig').object3D.position;
+    
     const entity = document.createElement('a-entity');
-
-    // Spawn 3 metros delante de la cámara
-    entity.setAttribute('position', `${rig.x} 0.2 ${rig.z - 3}`);
+    // Generar a la altura del pecho (1.2m) y 2 metros adelante
+    entity.setAttribute('position', `${rig.x} 1.2 ${rig.z - 2}`);
     
     const modelo = document.createElement('a-entity');
-    const nombreFinal = name.toLowerCase().endsWith('.glb') ? name : `${name}.glb`;
-    const ruta = `${cat}/${nombreFinal}`;
+    // Forzamos ruta directa y nombre exacto
+    const ruta = cat + "/" + name;
     
-    modelo.setAttribute('gltf-model', `url(${ruta})`);
+    modelo.setAttribute('gltf-model', ruta);
     modelo.setAttribute('class', 'interactable');
+    // Escala equilibrada: Ni gigante ni invisible
+    modelo.setAttribute('scale', '1 1 1');
     
     entity.appendChild(modelo);
     world.appendChild(entity);
-    console.log("Cargando: " + ruta);
+    console.log("Cargando modelo en: " + ruta);
 }
 
 function exportar() {
     document.querySelector('a-scene').components['gltf-exporter'].export();
-    alert("Exportando escena...");
 }
 
 document.querySelector('a-scene').addEventListener('mousedown', function () {
