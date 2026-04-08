@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
   <head>
@@ -10,16 +11,18 @@
       <a-assets>
         <img id="cielo" src="skyboxrenoverso1.jpg">
 
-        <a-asset-item id="gel1" src="1/1.glb"></a-asset-item>
+        <a-asset-item id="asset1" src="1/1.glb"></a-asset-item>
+        <a-asset-item id="asset106" src="1/106.glb"></a-asset-item>
 
-        <a-asset-item id="gel107" src="2/107.glb"></a-asset-item>
+        <a-asset-item id="asset107" src="2/107.glb"></a-asset-item>
+        <a-asset-item id="asset191" src="2/191.glb"></a-asset-item>
       </a-assets>
 
       <a-sky src="#cielo"></a-sky>
 
-      <a-entity gltf-model="#gel1" position="-2 1 -5"></a-entity>
+      <a-entity gltf-model="#asset1" position="-2 1 -5"></a-entity>
 
-      <a-entity gltf-model="#gel107" position="2 1 -5"></a-entity>
+      <a-entity gltf-model="#asset107" position="2 1 -5"></a-entity>
 
       <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
     </a-scene>
