@@ -2,31 +2,27 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Renoverso Assets</title>
+    <title>Renoverso - Quinta Generación</title>
+    <meta name="description" content="Metaverso Soberano">
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   </head>
   <body>
     <a-scene>
       <a-assets>
-        <img id="texturaLuna" src="mi-metaverso2/luna.jpg">
-        <img id="texturaEgipto" src="mi-metaverso2/egipto.jpg">
-        <img id="texturaIA" src="mi-metaverso2/ia.jpg">
+        <img id="skyTexture" src="skyboxrenoverso1.jpg">
+
+        <a-asset-item id="gel1" src="1/1.glb"></a-asset-item>
+        <a-asset-item id="gel107" src="2/107.glb"></a-asset-item>
       </a-assets>
 
-      <a-sky src="skyboxrenoverso1.jpg" rotation="0 -90 0"></a-sky>
+      <a-sky src="#skyTexture"></a-sky>
 
-      <a-sphere position="-3 1.5 -5" radius="1.2" src="#texturaLuna"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 20000">
-      </a-sphere>
+      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#7BC8A4" opacity="0.1"></a-plane>
 
-      <a-cone position="0 1.2 -7" radius-bottom="1.5" height="2" src="#texturaEgipto">
-      </a-cone>
+      <a-entity gltf-model="#gel1" position="-2 1.5 -5" scale="1 1 1"></a-entity>
+      <a-entity gltf-model="#gel107" position="2 1.5 -5" scale="1 1 1"></a-entity>
 
-      <a-torus-knot position="3 1.5 -5" radius="0.8" radius-tubular="0.1" src="#texturaIA"
-                    animation="property: rotation; to: 360 360 0; loop: true; dur: 15000">
-      </a-torus-knot>
-
-      <a-light type="ambient" color="#FFF"></a-light>
+      <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
     </a-scene>
   </body>
 </html>
