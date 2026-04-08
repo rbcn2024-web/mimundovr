@@ -1,39 +1,27 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Metaverso 5G - Hub Central</title>
+    <meta charset="utf-8">
+    <title>Metaverso Renoverso 1</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    
-    <meta name="apple-mobile-web-app-capable" content="yes">
   </head>
-  
   <body>
-    <a-scene inspector="url: https://cdn.jsdelivr.net/gh/aframevr/aframe-inspector@master/dist/aframe-inspector.min.js">
-      
-      <a-sky color="#050505"></a-sky>
+    <a-scene>
+      <a-sky src="Skyboxrenoverso1.jpg" rotation="0 -90 0"></a-sky>
 
-      <a-grid static-body material="opacity: 0.2; transparent: true; color: #3b82f6"></a-grid>
+      <a-sphere position="-3 1.5 -5" radius="1.2" color="#F4F1C9"
+                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
+      </a-sphere>
 
-      <a-entity id="portal-luna" 
-                geometry="primitive: sphere; radius: 1" 
-                material="color: #888888; emissive: #444444" 
-                position="-3 1.5 -5">
-      </a-entity>
+      <a-cone position="0 1.2 -7" radius-bottom="1.5" height="2" color="#E3B448">
+      </a-cone>
 
-      <a-entity id="portal-egipto" 
-                geometry="primitive: tetrahedron; radius: 1.2" 
-                material="color: #d4af37; emissive: #221a00" 
-                position="0 1.5 -5">
-      </a-entity>
+      <a-torus-knot position="3 1.5 -5" radius="0.8" radius-tubular="0.1" color="#4CC3D9"
+                    animation="property: rotation; to: 360 0 360; loop: true; dur: 15000">
+      </a-torus-knot>
 
-      <a-entity id="portal-ia" 
-                geometry="primitive: box; width: 1.5; height: 1.5; depth: 1.5" 
-                material="color: #00f2ff; emissive: #004455; opacity: 0.8; transparent: true" 
-                position="3 1.5 -5">
-      </a-entity>
-
-      <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
-
+      <a-light type="ambient" color="#FFF"></a-light>
+      <a-light type="directional" color="#FFF" intensity="0.5" position="-1 1 1"></a-light>
     </a-scene>
   </body>
 </html>
