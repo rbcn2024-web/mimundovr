@@ -1,63 +1,31 @@
-
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Renoverso - Catálogo Completo</title>
+    <title>Renoverso - Conexión Real</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   </head>
   <body>
-    <a-scene>
+    <a-scene inspector="url: https://cdn.jsdelivr.net/gh/aframevr/aframe-inspector@master/dist/aframe-inspector.min.js">
+      
       <a-assets>
-        <img id="sky" src="skyboxrenoverso1.jpg">
+        <img id="sky" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/skyboxrenoverso1.jpg">
 
-        <a-asset-item id="g1" src="1/1.glb"></a-asset-item><a-asset-item id="g2" src="1/2.glb"></a-asset-item><a-asset-item id="g3" src="1/3.glb"></a-asset-item><a-asset-item id="g4" src="1/4.glb"></a-asset-item><a-asset-item id="g5" src="1/5.glb"></a-asset-item>
-        <a-asset-item id="g6" src="1/6.glb"></a-asset-item><a-asset-item id="g7" src="1/7.glb"></a-asset-item><a-asset-item id="g8" src="1/8.glb"></a-asset-item><a-asset-item id="g9" src="1/9.glb"></a-asset-item><a-asset-item id="g10" src="1/10.glb"></a-asset-item>
-        <a-asset-item id="g11" src="1/11.glb"></a-asset-item><a-asset-item id="g12" src="1/12.glb"></a-asset-item><a-asset-item id="g13" src="1/13.glb"></a-asset-item><a-asset-item id="g14" src="1/14.glb"></a-asset-item><a-asset-item id="g15" src="1/15.glb"></a-asset-item>
-        <a-asset-item id="g16" src="1/16.glb"></a-asset-item><a-asset-item id="g17" src="1/17.glb"></a-asset-item><a-asset-item id="g18" src="1/18.glb"></a-asset-item><a-asset-item id="g19" src="1/19.glb"></a-asset-item><a-asset-item id="g20" src="1/20.glb"></a-asset-item>
-        <a-asset-item id="g21" src="1/21.glb"></a-asset-item><a-asset-item id="g22" src="1/22.glb"></a-asset-item><a-asset-item id="g23" src="1/23.glb"></a-asset-item><a-asset-item id="g24" src="1/24.glb"></a-asset-item><a-asset-item id="g25" src="1/25.glb"></a-asset-item>
-        <a-asset-item id="g26" src="1/26.glb"></a-asset-item><a-asset-item id="g27" src="1/27.glb"></a-asset-item><a-asset-item id="g28" src="1/28.glb"></a-asset-item><a-asset-item id="g29" src="1/29.glb"></a-asset-item><a-asset-item id="g30" src="1/30.glb"></a-asset-item>
-        <a-asset-item id="g31" src="1/31.glb"></a-asset-item><a-asset-item id="g32" src="1/32.glb"></a-asset-item><a-asset-item id="g33" src="1/33.glb"></a-asset-item><a-asset-item id="g34" src="1/34.glb"></a-asset-item><a-asset-item id="g35" src="1/35.glb"></a-asset-item>
-        <a-asset-item id="g36" src="1/36.glb"></a-asset-item><a-asset-item id="g37" src="1/37.glb"></a-asset-item><a-asset-item id="g38" src="1/38.glb"></a-asset-item><a-asset-item id="g39" src="1/39.glb"></a-asset-item><a-asset-item id="g40" src="1/40.glb"></a-asset-item>
-        <a-asset-item id="g41" src="1/41.glb"></a-asset-item><a-asset-item id="g42" src="1/42.glb"></a-asset-item><a-asset-item id="g43" src="1/43.glb"></a-asset-item><a-asset-item id="g44" src="1/44.glb"></a-asset-item><a-asset-item id="g45" src="1/45.glb"></a-asset-item>
-        <a-asset-item id="g46" src="1/46.glb"></a-asset-item><a-asset-item id="g47" src="1/47.glb"></a-asset-item><a-asset-item id="g48" src="1/48.glb"></a-asset-item><a-asset-item id="g49" src="1/49.glb"></a-asset-item><a-asset-item id="g50" src="1/50.glb"></a-asset-item>
-        <a-asset-item id="g51" src="1/51.glb"></a-asset-item><a-asset-item id="g52" src="1/52.glb"></a-asset-item><a-asset-item id="g53" src="1/53.glb"></a-asset-item><a-asset-item id="g54" src="1/54.glb"></a-asset-item><a-asset-item id="g55" src="1/55.glb"></a-asset-item>
-        <a-asset-item id="g56" src="1/56.glb"></a-asset-item><a-asset-item id="g57" src="1/57.glb"></a-asset-item><a-asset-item id="g58" src="1/58.glb"></a-asset-item><a-asset-item id="g59" src="1/59.glb"></a-asset-item><a-asset-item id="g60" src="1/60.glb"></a-asset-item>
-        <a-asset-item id="g61" src="1/61.glb"></a-asset-item><a-asset-item id="g62" src="1/62.glb"></a-asset-item><a-asset-item id="g63" src="1/63.glb"></a-asset-item><a-asset-item id="g64" src="1/64.glb"></a-asset-item><a-asset-item id="g65" src="1/65.glb"></a-asset-item>
-        <a-asset-item id="g66" src="1/66.glb"></a-asset-item><a-asset-item id="g67" src="1/67.glb"></a-asset-item><a-asset-item id="g68" src="1/68.glb"></a-asset-item><a-asset-item id="g69" src="1/69.glb"></a-asset-item><a-asset-item id="g70" src="1/70.glb"></a-asset-item>
-        <a-asset-item id="g71" src="1/71.glb"></a-asset-item><a-asset-item id="g72" src="1/72.glb"></a-asset-item><a-asset-item id="g73" src="1/73.glb"></a-asset-item><a-asset-item id="g74" src="1/74.glb"></a-asset-item><a-asset-item id="g75" src="1/75.glb"></a-asset-item>
-        <a-asset-item id="g76" src="1/76.glb"></a-asset-item><a-asset-item id="g77" src="1/77.glb"></a-asset-item><a-asset-item id="g78" src="1/78.glb"></a-asset-item><a-asset-item id="g79" src="1/79.glb"></a-asset-item><a-asset-item id="g80" src="1/80.glb"></a-asset-item>
-        <a-asset-item id="g81" src="1/81.glb"></a-asset-item><a-asset-item id="g82" src="1/82.glb"></a-asset-item><a-asset-item id="g83" src="1/83.glb"></a-asset-item><a-asset-item id="g84" src="1/84.glb"></a-asset-item><a-asset-item id="g85" src="1/85.glb"></a-asset-item>
-        <a-asset-item id="g86" src="1/86.glb"></a-asset-item><a-asset-item id="g87" src="1/87.glb"></a-asset-item><a-asset-item id="g88" src="1/88.glb"></a-asset-item><a-asset-item id="g89" src="1/89.glb"></a-asset-item><a-asset-item id="g90" src="1/90.glb"></a-asset-item>
-        <a-asset-item id="g91" src="1/91.glb"></a-asset-item><a-asset-item id="g92" src="1/92.glb"></a-asset-item><a-asset-item id="g93" src="1/93.glb"></a-asset-item><a-asset-item id="g94" src="1/94.glb"></a-asset-item><a-asset-item id="g95" src="1/95.glb"></a-asset-item>
-        <a-asset-item id="g96" src="1/96.glb"></a-asset-item><a-asset-item id="g97" src="1/97.glb"></a-asset-item><a-asset-item id="g98" src="1/98.glb"></a-asset-item><a-asset-item id="g99" src="1/99.glb"></a-asset-item><a-asset-item id="g100" src="1/100.glb"></a-asset-item>
-        <a-asset-item id="g101" src="1/101.glb"></a-asset-item><a-asset-item id="g102" src="1/102.glb"></a-asset-item><a-asset-item id="g103" src="1/103.glb"></a-asset-item><a-asset-item id="g104" src="1/104.glb"></a-asset-item><a-asset-item id="g105" src="1/105.glb"></a-asset-item>
-        <a-asset-item id="g106" src="1/106.glb"></a-asset-item>
+        <a-asset-item id="g1" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/1.glb"></a-asset-item>
+        <a-asset-item id="g2" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/2.glb"></a-asset-item>
+        <a-asset-item id="g50" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/50.glb"></a-asset-item>
 
-        <a-asset-item id="g107" src="2/107.glb"></a-asset-item><a-asset-item id="g108" src="2/108.glb"></a-asset-item><a-asset-item id="g109" src="2/109.glb"></a-asset-item><a-asset-item id="g110" src="2/110.glb"></a-asset-item><a-asset-item id="g111" src="2/111.glb"></a-asset-item>
-        <a-asset-item id="g112" src="2/112.glb"></a-asset-item><a-asset-item id="g113" src="2/113.glb"></a-asset-item><a-asset-item id="g114" src="2/114.glb"></a-asset-item><a-asset-item id="g115" src="2/115.glb"></a-asset-item><a-asset-item id="g116" src="2/116.glb"></a-asset-item>
-        <a-asset-item id="g117" src="2/117.glb"></a-asset-item><a-asset-item id="g118" src="2/118.glb"></a-asset-item><a-asset-item id="g119" src="2/119.glb"></a-asset-item><a-asset-item id="g120" src="2/120.glb"></a-asset-item><a-asset-item id="g121" src="2/121.glb"></a-asset-item>
-        <a-asset-item id="g122" src="2/122.glb"></a-asset-item><a-asset-item id="g123" src="2/123.glb"></a-asset-item><a-asset-item id="g124" src="2/124.glb"></a-asset-item><a-asset-item id="g125" src="2/125.glb"></a-asset-item><a-asset-item id="g126" src="2/126.glb"></a-asset-item>
-        <a-asset-item id="g127" src="2/127.glb"></a-asset-item><a-asset-item id="g128" src="2/128.glb"></a-asset-item><a-asset-item id="g129" src="2/129.glb"></a-asset-item><a-asset-item id="g130" src="2/130.glb"></a-asset-item><a-asset-item id="g131" src="2/131.glb"></a-asset-item>
-        <a-asset-item id="g132" src="2/132.glb"></a-asset-item><a-asset-item id="g133" src="2/133.glb"></a-asset-item><a-asset-item id="g134" src="2/134.glb"></a-asset-item><a-asset-item id="g135" src="2/135.glb"></a-asset-item><a-asset-item id="g136" src="2/136.glb"></a-asset-item>
-        <a-asset-item id="g137" src="2/137.glb"></a-asset-item><a-asset-item id="g138" src="2/138.glb"></a-asset-item><a-asset-item id="g139" src="2/139.glb"></a-asset-item><a-asset-item id="g140" src="2/140.glb"></a-asset-item><a-asset-item id="g141" src="2/141.glb"></a-asset-item>
-        <a-asset-item id="g142" src="2/142.glb"></a-asset-item><a-asset-item id="g143" src="2/143.glb"></a-asset-item><a-asset-item id="g144" src="2/144.glb"></a-asset-item><a-asset-item id="g145" src="2/145.glb"></a-asset-item><a-asset-item id="g146" src="2/146.glb"></a-asset-item>
-        <a-asset-item id="g147" src="2/147.glb"></a-asset-item><a-asset-item id="g148" src="2/148.glb"></a-asset-item><a-asset-item id="g149" src="2/149.glb"></a-asset-item><a-asset-item id="g150" src="2/150.glb"></a-asset-item><a-asset-item id="g151" src="2/151.glb"></a-asset-item>
-        <a-asset-item id="g152" src="2/152.glb"></a-asset-item><a-asset-item id="g153" src="2/153.glb"></a-asset-item><a-asset-item id="g154" src="2/154.glb"></a-asset-item><a-asset-item id="g155" src="2/155.glb"></a-asset-item><a-asset-item id="g156" src="2/156.glb"></a-asset-item>
-        <a-asset-item id="g157" src="2/157.glb"></a-asset-item><a-asset-item id="g158" src="2/158.glb"></a-asset-item><a-asset-item id="g159" src="2/159.glb"></a-asset-item><a-asset-item id="g160" src="2/160.glb"></a-asset-item><a-asset-item id="g161" src="2/161.glb"></a-asset-item>
-        <a-asset-item id="g162" src="2/162.glb"></a-asset-item><a-asset-item id="g163" src="2/163.glb"></a-asset-item><a-asset-item id="g164" src="2/164.glb"></a-asset-item><a-asset-item id="g165" src="2/165.glb"></a-asset-item><a-asset-item id="g166" src="2/166.glb"></a-asset-item>
-        <a-asset-item id="g167" src="2/167.glb"></a-asset-item><a-asset-item id="g168" src="2/168.glb"></a-asset-item><a-asset-item id="g169" src="2/169.glb"></a-asset-item><a-asset-item id="g170" src="2/170.glb"></a-asset-item><a-asset-item id="g171" src="2/171.glb"></a-asset-item>
-        <a-asset-item id="g172" src="2/172.glb"></a-asset-item><a-asset-item id="g173" src="2/173.glb"></a-asset-item><a-asset-item id="g174" src="2/174.glb"></a-asset-item><a-asset-item id="g175" src="2/175.glb"></a-asset-item><a-asset-item id="g176" src="2/176.glb"></a-asset-item>
-        <a-asset-item id="g177" src="2/177.glb"></a-asset-item><a-asset-item id="g178" src="2/178.glb"></a-asset-item><a-asset-item id="g179" src="2/179.glb"></a-asset-item><a-asset-item id="g180" src="2/180.glb"></a-asset-item><a-asset-item id="g181" src="2/181.glb"></a-asset-item>
-        <a-asset-item id="g182" src="2/182.glb"></a-asset-item><a-asset-item id="g183" src="2/183.glb"></a-asset-item><a-asset-item id="g184" src="2/184.glb"></a-asset-item><a-asset-item id="g185" src="2/185.glb"></a-asset-item><a-asset-item id="g186" src="2/186.glb"></a-asset-item>
-        <a-asset-item id="g187" src="2/187.glb"></a-asset-item><a-asset-item id="g188" src="2/188.glb"></a-asset-item><a-asset-item id="g189" src="2/189.glb"></a-asset-item><a-asset-item id="g190" src="2/190.glb"></a-asset-item><a-asset-item id="g191" src="2/191.glb"></a-asset-item>
+        <a-asset-item id="g107" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/2/107.glb"></a-asset-item>
+        <a-asset-item id="g191" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/2/191.glb"></a-asset-item>
       </a-assets>
 
       <a-sky src="#sky"></a-sky>
 
       <a-entity light="type: ambient; intensity: 0.8"></a-entity>
-      
+      <a-entity light="type: directional; intensity: 0.5" position="-1 2 1"></a-entity>
+
       <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
     </a-scene>
   </body>
 </html>
+
