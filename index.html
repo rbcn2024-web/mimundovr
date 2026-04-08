@@ -1,25 +1,17 @@
-
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Metaverso Renoverso 1</title>
+    <title>Renoverso 1</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   </head>
   <body>
     <a-scene>
-      <a-sky src="Skyboxrenoverso1.jpg" rotation="0 -90 0"></a-sky>
+      <a-sky src="skyboxrenoverso1.jpg" rotation="0 -90 0"></a-sky>
 
-      <a-sphere id="luna" position="-3 1.5 -5" radius="1.2" color="#F4F1C9"
-                animation="property: rotation; to: 0 360 0; loop: true; dur: 10000">
-      </a-sphere>
-
-      <a-cone id="egipto" position="0 1.2 -7" radius-bottom="1.5" height="2" color="#E3B448">
-      </a-cone>
-
-      <a-torus-knot id="ia" position="3 1.5 -5" radius="0.8" radius-tubular="0.1" color="#4CC3D9"
-                    animation="property: rotation; to: 360 0 360; loop: true; dur: 15000">
-      </a-torus-knot>
+      <a-sphere position="-3 1.5 -5" radius="1.2" color="#F4F1C9"></a-sphere>
+      <a-cone position="0 1.2 -7" radius-bottom="1.5" height="2" color="#E3B448"></a-cone>
+      <a-torus-knot position="3 1.5 -5" radius="0.8" radius-tubular="0.1" color="#4CC3D9"></a-torus-knot>
 
       <a-light type="ambient" color="#FFF"></a-light>
     </a-scene>
