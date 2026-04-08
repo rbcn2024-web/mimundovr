@@ -1,28 +1,31 @@
-
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Renoverso</title>
+    <title>Renoverso - 191 Geles</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   </head>
   <body>
     <a-scene>
       <a-assets>
-        <img id="cielo" src="skyboxrenoverso1.jpg">
+        <img id="sky" src="skyboxrenoverso1.jpg">
 
-        <a-asset-item id="asset1" src="1/1.glb"></a-asset-item>
-        <a-asset-item id="asset106" src="1/106.glb"></a-asset-item>
+        <a-asset-item id="a1" src="1/1.glb"></a-asset-item><a-asset-item id="a2" src="1/2.glb"></a-asset-item>
+        <a-asset-item id="a3" src="1/3.glb"></a-asset-item><a-asset-item id="a4" src="1/4.glb"></a-asset-item>
+        <a-asset-item id="a5" src="1/5.glb"></a-asset-item><a-asset-item id="a6" src="1/6.glb"></a-asset-item>
+        <a-asset-item id="a7" src="1/7.glb"></a-asset-item><a-asset-item id="a8" src="1/8.glb"></a-asset-item>
+        <a-asset-item id="a9" src="1/9.glb"></a-asset-item><a-asset-item id="a10" src="1/10.glb"></a-asset-item>
+        <a-asset-item id="a106" src="1/106.glb"></a-asset-item>
 
-        <a-asset-item id="asset107" src="2/107.glb"></a-asset-item>
-        <a-asset-item id="asset191" src="2/191.glb"></a-asset-item>
+        <a-asset-item id="a107" src="2/107.glb"></a-asset-item><a-asset-item id="a108" src="2/108.glb"></a-asset-item>
+        <a-asset-item id="a109" src="2/109.glb"></a-asset-item><a-asset-item id="a110" src="2/110.glb"></a-asset-item>
+        <a-asset-item id="a191" src="2/191.glb"></a-asset-item>
       </a-assets>
 
-      <a-sky src="#cielo"></a-sky>
-
-      <a-entity gltf-model="#asset1" position="-2 1 -5"></a-entity>
-
-      <a-entity gltf-model="#asset107" position="2 1 -5"></a-entity>
+      <a-sky src="#sky"></a-sky>
+      
+      <a-entity light="type: ambient; intensity: 0.7"></a-entity>
+      <a-entity light="type: directional; intensity: 0.6" position="-1 2 1"></a-entity>
 
       <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
     </a-scene>
