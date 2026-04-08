@@ -1,38 +1,23 @@
-
 <!DOCTYPE html>
 <html>
   <head>
     <meta charset="utf-8">
-    <title>Renoverso Total</title>
+    <title>Renoverso - Editor Limpio</title>
     <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   </head>
   <body>
     <a-scene inspector="url: https://cdn.jsdelivr.net/gh/aframevr/aframe-inspector@master/dist/aframe-inspector.min.js">
-      <a-assets timeout="30000">
-        <img id="sky" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/skyboxrenoverso1.jpg">
-
-        <a-asset-item id="1.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/1.glb"></a-asset-item>
-        <a-asset-item id="2.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/2.glb"></a-asset-item>
-        <a-asset-item id="3.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/3.glb"></a-asset-item>
-        <a-asset-item id="4.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/4.glb"></a-asset-item>
-        <a-asset-item id="5.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/5.glb"></a-asset-item>
-        <a-asset-item id="6.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/6.glb"></a-asset-item>
-        <a-asset-item id="7.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/7.glb"></a-asset-item>
-        <a-asset-item id="8.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/8.glb"></a-asset-item>
-        <a-asset-item id="9.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/9.glb"></a-asset-item>
-        <a-asset-item id="10.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/10.glb"></a-asset-item>
-        <a-asset-item id="106.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/1/106.glb"></a-asset-item>
-
-        <a-asset-item id="107.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/2/107.glb"></a-asset-item>
-        <a-asset-item id="108.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/2/108.glb"></a-asset-item>
-        <a-asset-item id="109.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/2/109.glb"></a-asset-item>
-        <a-asset-item id="110.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/2/110.glb"></a-asset-item>
-        <a-asset-item id="191.glb" src="https://raw.githubusercontent.com/rbcn2024/rbcn2024-web/main/2/191.glb"></a-asset-item>
+      
+      <a-assets>
       </a-assets>
 
-      <a-sky src="#sky"></a-sky>
-      <a-entity light="type: ambient; intensity: 1"></a-entity>
+      <a-plane position="0 0 0" rotation="-90 0 0" width="100" height="100" color="#7BC8A4"></a-plane>
+      <a-sky color="#ECECEC"></a-sky>
+
       <a-entity camera look-controls wasd-controls position="0 1.6 0"></a-entity>
+      <a-entity light="type: ambient; color: #BBB"></a-entity>
+      <a-entity light="type: directional; color: #FFF; intensity: 0.6" position="-0.5 1 1"></a-entity>
+      
     </a-scene>
   </body>
 </html>
