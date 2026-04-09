@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VR Scene Editor</title>
+
+<!-- ✅ THREE + GLTFLOADER cargados síncronamente en el head -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Syne:wght@400;500;600;700&display=swap');
+:root{
+  --bg:#0a0a0f;--bg2:#111118;--bg3:#1a1a24;
+  --border:rgba(120,100,255,0.2);--border2:rgba(120,100,255,0.4);
+  --accent:#7c6aff;--accent2:#a78bfa;
+  --text:#e8e4ff;--text2:#9090b0;
+  --danger:#ff4f4f;--success:#4fffb0;--panel:260px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;overflow:hidden;height:100vh;display:flex;flex-direction:column;}
+
+#topbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;z-index:100;}
+.logo{font-size:15px;font-weight:700;letter-spacing:2px;color:var(--accent2);}
+.sep{width:1px;height:24px;background:var(--border);}
+.tbtn{height:32px;padding:0 12px;background:transparent;border:1px solid var(--border);color:var(--text2);font-family:'Syne',sans-serif;font-size:12px;font-weight:500;cursor:pointer;border-radius:6px;display:flex;align-items:center;gap:6px;transition:all 0.15s;white-space:nowrap;}
+.tbtn:hover{background:var(--bg3);border-color:var(--border2);color:var(--text);}
+.tbtn.on{background:rgba(124,106,255,0.2);border-color:var(--accent);color:var(--accent2);}
+.tbtn.exp{border-color:rgba(79,255,176,0.4);color:var(--success);}
+.tbtn.exp:hover{background:rgba(79,255,176,0.08);}
+.tbtn.vr{border-color:rgba(255,200,50,0.5);color:#ffc832;}
+.tbtn.vr:hover{background:rgba(255,200,50,0.08);}
+.tbtn.vr.vron{background:rgba(255,200,50,0.18);}
+.tbtn.vr.vroff{opacity:0.35;cursor:not-allowed;}
+.sp{flex:1;}
+
+#main{display:flex;flex:1;overflow:hidden;}
+
+/* LEFT */
+#lpanel{width:var(--panel);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.psec{padding:12px;border-bottom:1px solid var(--border);}
+.ptitle{font-size:10px;font-weight:600;letter-spacing:2px;color:var(--text2);text-transform:uppercase;margin-bottom:10px;}
+
+#dropzone{border:1.5px dashed var(--border2);border-radius:8px;padding:18px 12px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(124,106,255,0.03);}
+#dropzone:hover,#dropzone.over{border-color:var(--accent);background:rgba(124,106,255,0.08);}
+#dropzone .dzi{font-size:22px;margin-bottom:5px;}
+#dropzone .dzt{font-size:11px;color:var(--text2);line-height:1.5;}
+#dropzone .dzh{font-size:10px;color:var(--accent);margin-top:3px;}
+
+#alist{flex:1;overflow-y:auto;padding:8px;}
+#alist::-webkit-scrollbar{width:4px;}
+#alist::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.aitem{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:6px;border:1px solid transparent;margin-bottom:2px;transition:all 0.15s;}
+.aitem:hover{background:var(--bg3);border-color:var(--border);}
+.aico{width:28px;height:28px;border-radius:5px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.ainf{flex:1;min-width:0;}
+.aname{font-size:11px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.atype{font-size:9px;color:var(--text2);font-family:'JetBrains Mono';}
+.aadd{width:22px;height:22px;border-radius:4px;background:rgba(124,106,255,0.2);border:1px solid var(--accent);color:var(--accent2);font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all 0.15s;line-height:1;user-select:none;}
+.aadd:hover{background:rgba(124,106,255,0.4);}
+
+/* CANVAS */
+#cwrap{flex:1;position:relative;overflow:hidden;}
+#vc{width:100%;height:100%;display:block;}
+
+#gi{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(10,10,15,0.85);border:1px solid var(--border);border-radius:8px;padding:6px 14px;font-size:11px;color:var(--text2);font-family:'JetBrains Mono';display:none;gap:16px;pointer-events:none;white-space:nowrap;}
+#gi.vis{display:flex;}
+#gi span{color:var(--text);}
+
+#nhint{position:absolute;top:12px;right:12px;background:rgba(10,10,15,0.75);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:10px;color:var(--text2);font-family:'JetBrains Mono';pointer-events:none;line-height:1.7;}
+
+#selbar{position:absolute;bottom:50px;left:50%;transform:translateX(-50%);background:rgba(10,10,15,0.92);border:1px solid var(--accent);border-radius:8px;padding:8px 16px;display:none;align-items:center;gap:12px;}
+#selbar.vis{display:flex;}
+.sname{font-size:12px;color:var(--accent2);font-weight:600;}
+#sdel{background:rgba(255,79,79,0.2);border:1px solid var(--danger);color:var(--danger);padding:4px 12px;border-radius:5px;cursor:pointer;font-size:11px;font-family:'Syne',sans-serif;}
+#sdel:hover{background:rgba(255,79,79,0.35);}
+
+/* DEBUG */
+#dbgpanel{position:absolute;bottom:50px;right:8px;width:360px;max-height:200px;overflow-y:auto;background:rgba(5,5,10,0.95);border:1px solid rgba(120,100,255,0.4);border-radius:6px;padding:6px 8px;font-size:10px;font-family:'JetBrains Mono',monospace;display:none;flex-direction:column;gap:2px;z-index:60;}
+#dbgpanel.open{display:flex;}
+.dbgl{padding:2px 0;border-bottom:1px solid rgba(120,100,255,0.08);}
+#dbgbtn{position:absolute;bottom:12px;right:12px;background:rgba(10,10,20,0.85);border:1px solid rgba(120,100,255,0.4);color:#a78bfa;font-size:10px;font-family:'JetBrains Mono',monospace;padding:4px 10px;border-radius:5px;cursor:pointer;z-index:61;}
+
+/* RIGHT */
+#rpanel{width:220px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.prow{display:flex;align-items:center;gap:8px;padding:3px 0;}
+.plbl{font-size:10px;color:var(--text2);width:28px;flex-shrink:0;font-family:'JetBrains Mono';}
+.pinp{flex:1;height:24px;background:var(--bg3);border:1px solid var(--border);color:var(--text);font-size:11px;font-family:'JetBrains Mono';border-radius:4px;padding:0 6px;}
+.pinp:focus{outline:none;border-color:var(--accent);}
+.sgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;}
+.sbtn{padding:8px 4px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:10px;font-family:'Syne',sans-serif;cursor:pointer;text-align:center;transition:all 0.15s;font-weight:500;}
+.sbtn:hover{border-color:var(--border2);color:var(--text);}
+.sbtn.on{border-color:var(--accent);background:rgba(124,106,255,0.15);color:var(--accent2);}
+.sprev{width:100%;height:36px;border-radius:4px;margin-bottom:4px;}
+#stree{flex:1;overflow-y:auto;padding:8px;}
+.titem{padding:5px 8px;border-radius:5px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;border:1px solid transparent;}
+.titem:hover{background:var(--bg3);}
+.titem.sel{background:rgba(124,106,255,0.15);border-color:var(--accent);color:var(--accent2);}
+.tdot{width:6px;height:6px;border-radius:50%;background:var(--border2);flex-shrink:0;}
+.titem.sel .tdot{background:var(--accent);}
+
+#sbar{height:26px;background:var(--bg2);border-top:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:16px;flex-shrink:0;font-size:10px;color:var(--text2);font-family:'JetBrains Mono';}
+.sacc{color:var(--accent2);}
+
+#loader{position:fixed;inset:0;background:rgba(10,10,15,0.92);z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;}
+#loader.hide{display:none;}
+.lspin{width:40px;height:40px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ltxt{font-size:12px;color:var(--text2);}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="lspin"></div><div class="ltxt">Iniciando...</div></div>
+
+<div id="topbar">
+  <div class="logo">◈ VR EDITOR</div>
+  <div class="sep"></div>
+  <button class="tbtn on"  id="bmove"   onclick="setTool('translate')">⟢ Mover</button>
+  <button class="tbtn"     id="brotate" onclick="setTool('rotate')">↻ Rotar</button>
+  <button class="tbtn"     id="bscale"  onclick="setTool('scale')">⤢ Escalar</button>
+  <div class="sep"></div>
+  <button class="tbtn" onclick="resetCam()">⊙ Reset Cám.</button>
+  <button class="tbtn" onclick="frameSel()">⊞ Enfocar</button>
+  <div class="sp"></div>
+  <button class="tbtn vr vroff" id="bvr" onclick="toggleVR()" title="Verificando...">◉ Entrar VR</button>
+  <div class="sep"></div>
+  <button class="tbtn" onclick="clearScene()">⊘ Limpiar</button>
+  <div class="sep"></div>
+  <button class="tbtn exp" onclick="exportScene()">⬇ Exportar HTML</button>
+</div>
+
+<div id="main">
+
+  <div id="lpanel">
+    <div class="psec">
+      <div class="ptitle">Assets</div>
+      <div id="dropzone"
+           onclick="document.getElementById('ffiles').click()"
+           ondragover="event.preventDefault();this.classList.add('over')"
+           ondragleave="this.classList.remove('over')"
+           ondrop="onDrop(event)">
+        <div class="dzi">📂</div>
+        <div class="dzt">Arrastra archivos GLB/IMG aquí</div>
+        <div class="dzh">GLB · GLTF · JPG · PNG</div>
+      </div>
+      <input type="file" id="ffiles"  multiple accept=".glb,.gltf,.jpg,.jpeg,.png" style="display:none" onchange="onFileInp(event)">
+      <input type="file" id="ffolder" multiple accept=".glb,.gltf,.jpg,.jpeg,.png" style="display:none" onchange="onFileInp(event)" webkitdirectory>
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        <button class="tbtn" style="flex:1;justify-content:center;font-size:11px;" onclick="document.getElementById('ffiles').click()">Archivos</button>
+        <button class="tbtn" style="flex:1;justify-content:center;font-size:11px;" onclick="document.getElementById('ffolder').click()">Carpeta</button>
+      </div>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="padding:8px 12px 4px;"><span class="ptitle">Biblioteca</span></div>
+      <div id="alist"></div>
+    </div>
+  </div>
+
+  <div id="cwrap">
+    <canvas id="vc"></canvas>
+    <div id="gi">
+      <span id="gip">Pos: 0,0,0</span>
+      <span id="gir">Rot: 0°,0°,0°</span>
+      <span id="gis">Esc: 1,1,1</span>
+    </div>
+    <div id="nhint">
+      🖱 Der: rotar · Med: pan · Scroll: zoom<br>
+      ⌨ WASD/Flechas: mover · Q/E: subir/bajar
+    </div>
+    <div id="selbar">
+      <div class="tdot" style="background:var(--accent)"></div>
+      <span class="sname" id="sname">Objeto</span>
+      <button id="sdel" onclick="deleteSel()">🗑 Eliminar</button>
+    </div>
+    <div id="dbgpanel"></div>
+    <button id="dbgbtn" onclick="toggleDbg()">🔍 Debug</button>
+  </div>
+
+  <div id="rpanel">
+    <div class="psec">
+      <div class="ptitle">Skybox</div>
+      <div class="sgrid">
+        <button class="sbtn on" id="sky-city"   onclick="setSky('city')">  <div class="sprev" style="background:linear-gradient(180deg,#1a1a3e,#2a2a5e,#1a1a2e)"></div>Ciudad</button>
+        <button class="sbtn"    id="sky-sunset" onclick="setSky('sunset')"><div class="sprev" style="background:linear-gradient(180deg,#ff6a00,#ee0979,#1a0030)"></div>Atardecer</button>
+        <button class="sbtn"    id="sky-space"  onclick="setSky('space')"> <div class="sprev" style="background:linear-gradient(180deg,#000010,#0a0020,#000508)"></div>Espacio</button>
+        <button class="sbtn"    id="sky-forest" onclick="setSky('forest')"><div class="sprev" style="background:linear-gradient(180deg,#87ceeb,#98fb98,#228b22)"></div>Bosque</button>
+        <button class="sbtn"    id="sky-desert" onclick="setSky('desert')"><div class="sprev" style="background:linear-gradient(180deg,#ffd700,#ff8c00,#d2691e)"></div>Desierto</button>
+        <button class="sbtn"    id="sky-snow"   onclick="setSky('snow')">  <div class="sprev" style="background:linear-gradient(180deg,#b0c4de,#dce8f0,#f0f8ff)"></div>Nevada</button>
+      </div>
+      <div style="margin-top:8px;">
+        <input type="file" id="skyfi" accept=".jpg,.jpeg,.png" style="display:none">
+        <button class="tbtn" style="width:100%;justify-content:center;font-size:11px;" onclick="document.getElementById('skyfi').click()">📷 Imagen propia</button>
+      </div>
+    </div>
+    <div class="psec" id="propspanel" style="display:none;">
+      <div class="ptitle">Propiedades</div>
+      <div id="propname" style="font-size:10px;color:var(--text2);margin-bottom:8px;font-family:'JetBrains Mono'">–</div>
+      <div style="margin-bottom:8px;">
+        <div style="font-size:9px;color:var(--text2);margin-bottom:4px;letter-spacing:1px;">POSICIÓN</div>
+        <div class="prow"><span class="plbl">X</span><input class="pinp" id="px" type="number" step="0.1" oninput="applyProps()"></div>
+        <div class="prow"><span class="plbl">Y</span><input class="pinp" id="py" type="number" step="0.1" oninput="applyProps()"></div>
+        <div class="prow"><span class="plbl">Z</span><input class="pinp" id="pz" type="number" step="0.1" oninput="applyProps()"></div>
+      </div>
+      <div style="margin-bottom:8px;">
+        <div style="font-size:9px;color:var(--text2);margin-bottom:4px;letter-spacing:1px;">ROTACIÓN (°)</div>
+        <div class="prow"><span class="plbl">X</span><input class="pinp" id="rx" type="number" step="1" oninput="applyProps()"></div>
+        <div class="prow"><span class="plbl">Y</span><input class="pinp" id="ry" type="number" step="1" oninput="applyProps()"></div>
+        <div class="prow"><span class="plbl">Z</span><input class="pinp" id="rz" type="number" step="1" oninput="applyProps()"></div>
+      </div>
+      <div>
+        <div style="font-size:9px;color:var(--text2);margin-bottom:4px;letter-spacing:1px;">ESCALA</div>
+        <div class="prow"><span class="plbl">U</span><input class="pinp" id="su" type="number" step="0.1" min="0.01" oninput="applyUniform(this.value)"></div>
+        <div class="prow"><span class="plbl">X</span><input class="pinp" id="sx" type="number" step="0.1" min="0.01" oninput="applyProps()"></div>
+        <div class="prow"><span class="plbl">Y</span><input class="pinp" id="sy" type="number" step="0.1" min="0.01" oninput="applyProps()"></div>
+        <div class="prow"><span class="plbl">Z</span><input class="pinp" id="sz" type="number" step="0.1" min="0.01" oninput="applyProps()"></div>
+      </div>
+    </div>
+    <div style="padding:8px 12px 4px;"><span class="ptitle">Escena</span></div>
+    <div id="stree"></div>
+  </div>
+
+</div>
+
+<div id="sbar">
+  <span>Objetos: <span class="sacc" id="stcount">0</span></span>
+  <span>Tool: <span class="sacc" id="sttool">Mover</span></span>
+  <span id="stsel" style="display:none">Sel: <span class="sacc" id="stsname"></span></span>
+  <div style="flex:1"></div>
+  <span>G/R/S · F: enfocar · Del: borrar · WASD: mover cámara</span>
+</div>
+
+<script>
+/* ============================================================
+   VR SCENE EDITOR — versión final robusta
+   Three.js r128 + GLTFLoader cargados síncronamente en <head>
+   ============================================================ */
+
+// ── DEBUG ──────────────────────────────────────────────────
+const DBG = {
+  open: false,
+  panel: null,
+  btn: null,
+  init() {
+    this.panel = document.getElementById('dbgpanel');
+    this.btn   = document.getElementById('dbgbtn');
+  },
+  log(msg, color='#9090b0') {
+    console.log('[DBG]', msg);
+    if(!this.panel) return;
+    const d = document.createElement('div');
+    d.className = 'dbgl';
+    d.style.color = color;
+    const t = new Date().toLocaleTimeString('es',{hour12:false});
+    d.textContent = t + ' ' + msg;
+    this.panel.appendChild(d);
+    this.panel.scrollTop = this.panel.scrollHeight;
+    if(color === '#ff6b6b') { // error → auto abrir
+      this.open = true;
+      this.panel.classList.add('open');
+      this.btn.textContent = '✕ Debug';
+    }
+  },
+  toggle() {
+    this.open = !this.open;
+    this.panel.classList.toggle('open', this.open);
+    this.btn.textContent = this.open ? '✕ Debug' : '🔍 Debug';
+  }
+};
+function toggleDbg() { DBG.toggle(); }
+
+// ── GLOBALS ────────────────────────────────────────────────
+let scene, camera, renderer, clock;
+let orbit;
+let gltfLoader = null;
+let selObj  = null;
+let sceneObjs = [];
+let assetLib  = [];
+let curTool   = 'translate';
+let curSky    = 'city';
+let rc, mouse;
+let gizGrp  = null;
+let outlines= [];
+let mixers  = [];
+let vrSess  = null;
+let keys    = {};
+let gz = {on:false,axis:null,mx:0,my:0,pos:null,rot:null,sca:null};
+let mdX=0,mdY=0,mdMov=false;
+
+const SKYCFG = {
+  city:  {top:0x0a0a2e,bot:0x1a1a4e,fog:0x0d0d30,amb:0x4444aa,ai:0.8,stars:true},
+  sunset:{top:0xff4400,bot:0xff0066,fog:0x330010,amb:0xff8844,ai:1.0,stars:false},
+  space: {top:0x000005,bot:0x000510,fog:0x000008,amb:0x111133,ai:0.4,stars:true},
+  forest:{top:0x2980b9,bot:0x6dd5fa,fog:0x87ceeb,amb:0x88ffaa,ai:1.2,stars:false},
+  desert:{top:0xffd700,bot:0xff8c00,fog:0xffcc66,amb:0xffee88,ai:1.5,stars:false},
+  snow:  {top:0xb0c4de,bot:0xdce8f0,fog:0xe0eef8,amb:0xccddff,ai:1.3,stars:false},
+};
+let skyMesh=null,starMesh=null;
+
+// ── ORBIT (der=rotar, med=pan, scroll=zoom) ────────────────
+function makeOrbit(cam, canvas) {
+  const o = {
+    target: new THREE.Vector3(),
+    sph:    new THREE.Spherical(),
+    dsph:   new THREE.Spherical(),
+    pan:    new THREE.Vector3(),
+    scale:  1,
+    mode:   0,
+    prev:   new THREE.Vector2(),
+    enabled:true
+  };
+  const tmp = new THREE.Vector3().subVectors(cam.position, o.target);
+  o.sph.setFromVector3(tmp);
+  const Q  = new THREE.Quaternion().setFromUnitVectors(cam.up, new THREE.Vector3(0,1,0));
+  const QI = Q.clone().invert();
+  const off= new THREE.Vector3();
+
+  o.update = () => {
+    const D=0.1;
+    o.sph.theta += o.dsph.theta*D; o.sph.phi += o.dsph.phi*D;
+    o.sph.phi = Math.max(0.02,Math.min(Math.PI-0.02,o.sph.phi));
+    o.sph.makeSafe();
+    o.sph.radius = Math.max(0.3,Math.min(2000,o.sph.radius*o.scale));
+    o.dsph.theta*=(1-D); o.dsph.phi*=(1-D);
+    o.target.addScaledVector(o.pan,D); o.pan.multiplyScalar(1-D);
+    o.scale=1;
+    off.setFromSpherical(o.sph).applyQuaternion(QI);
+    cam.position.copy(o.target).add(off);
+    cam.lookAt(o.target);
+  };
+
+  const panBy=(dx,dy)=>{
+    const h=canvas.clientHeight;
+    const d=cam.position.distanceTo(o.target)*Math.tan(cam.fov*Math.PI/360);
+    o.pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix,0),-2*dx*d/h);
+    o.pan.addScaledVector(new THREE.Vector3().setFromMatrixColumn(cam.matrix,1), 2*dy*d/h);
+  };
+
+  const onMD=e=>{
+    if(!o.enabled) return;
+    if(e.button===2){o.mode=1;o.prev.set(e.clientX,e.clientY);e.preventDefault();}
+    else if(e.button===1){o.mode=2;o.prev.set(e.clientX,e.clientY);e.preventDefault();}
+    else return;
+    window.addEventListener('mousemove',onMM);
+    window.addEventListener('mouseup',onMU);
+  };
+  const onMM=e=>{
+    if(!o.enabled) return;
+    const dx=e.clientX-o.prev.x,dy=e.clientY-o.prev.y;
+    if(o.mode===1){o.dsph.theta-=2*Math.PI*dx/(canvas.clientHeight*2.5);o.dsph.phi-=2*Math.PI*dy/(canvas.clientHeight*2.5);}
+    else if(o.mode===2) panBy(dx,dy);
+    o.prev.set(e.clientX,e.clientY);
+  };
+  const onMU=()=>{o.mode=0;window.removeEventListener('mousemove',onMM);window.removeEventListener('mouseup',onMU);};
+  canvas.addEventListener('mousedown',onMD);
+  canvas.addEventListener('wheel',e=>{e.preventDefault();o.scale*=Math.pow(0.95,e.deltaY*0.012);},{passive:false});
+  canvas.addEventListener('contextmenu',e=>e.preventDefault());
+  return o;
+}
+
+// ── INIT ──────────────────────────────────────────────────
+function init() {
+  DBG.init();
+  DBG.log('Three.js r'+THREE.REVISION, '#4fffb0');
+  DBG.log('THREE.GLTFLoader: '+(typeof THREE.GLTFLoader), typeof THREE.GLTFLoader==='function'?'#4fffb0':'#ff6b6b');
+
+  if(typeof THREE.GLTFLoader === 'function') {
+    gltfLoader = new THREE.GLTFLoader();
+    DBG.log('✓ gltfLoader instanciado','#4fffb0');
+  } else {
+    DBG.log('✗ GLTFLoader NO disponible — los GLB no cargarán','#ff6b6b');
+  }
+
+  const canvas = document.getElementById('vc');
+  const wrap   = document.getElementById('cwrap');
+
+  renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+
+  scene  = new THREE.Scene();
+  clock  = new THREE.Clock();
+  camera = new THREE.PerspectiveCamera(60,wrap.clientWidth/wrap.clientHeight,0.01,10000);
+  camera.position.set(5,3,8);
+
+  orbit = makeOrbit(camera,canvas);
+  rc    = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+
+  const grid=new THREE.GridHelper(40,40,0x2a2a3f,0x1a1a2a);
+  grid.material.opacity=0.6; grid.material.transparent=true;
+  scene.add(grid);
+
+  const gnd=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshBasicMaterial({visible:false,side:THREE.DoubleSide}));
+  gnd.rotation.x=-Math.PI/2; scene.add(gnd);
+
+  scene.add(new THREE.AmbientLight(0xffffff,0.6));
+  const dl=new THREE.DirectionalLight(0xffffff,1.2);
+  dl.position.set(10,20,10); dl.castShadow=true;
+  dl.shadow.mapSize.set(2048,2048);
+  dl.shadow.camera.near=0.1; dl.shadow.camera.far=100;
+  dl.shadow.camera.left=-20; dl.shadow.camera.right=20;
+  dl.shadow.camera.top=20;   dl.shadow.camera.bottom=-20;
+  scene.add(dl);
+  const dl2=new THREE.DirectionalLight(0x8888ff,0.3);
+  dl2.position.set(-5,5,-10); scene.add(dl2);
+
+  setSky('city');
+
+  canvas.addEventListener('mousedown',onCanvasMD);
+  canvas.addEventListener('click',    onCanvasClick);
+  window.addEventListener('keydown',  e=>{keys[e.key.toLowerCase()]=true; onKey(e);});
+  window.addEventListener('keyup',    e=>{keys[e.key.toLowerCase()]=false;});
+  window.addEventListener('resize',   onResize);
+  document.getElementById('skyfi').addEventListener('change',onSkyImg);
+
+  checkVR();
+  onResize();
+  document.getElementById('loader').classList.add('hide');
+  DBG.log('✓ Editor iniciado','#4fffb0');
+  requestAnimationFrame(loop);
+}
+
+// ── LOOP ──────────────────────────────────────────────────
+function loop() {
+  requestAnimationFrame(loop);
+  const dt=clock.getDelta();
+  camNav(dt);
+  mixers.forEach(m=>m.update(dt));
+  orbit.update();
+  if(selObj&&gizGrp) syncGiz();
+  renderer.render(scene,camera);
+  if(selObj) refreshProps();
+}
+
+// ── CAMERA NAV ────────────────────────────────────────────
+function camNav(dt) {
+  const spd=8*dt;
+  const fwd=new THREE.Vector3(); camera.getWorldDirection(fwd); fwd.y=0; fwd.normalize();
+  const rgt=new THREE.Vector3().crossVectors(fwd,camera.up).normalize();
+  const mv=new THREE.Vector3();
+  if(keys['w']||keys['arrowup'])    mv.addScaledVector(fwd, spd);
+  if(keys['s']||keys['arrowdown'])  mv.addScaledVector(fwd,-spd);
+  if(keys['a']||keys['arrowleft'])  mv.addScaledVector(rgt,-spd);
+  if(keys['d']||keys['arrowright']) mv.addScaledVector(rgt, spd);
+  if(keys['q']) mv.y-=spd;
+  if(keys['e']) mv.y+=spd;
+  if(mv.lengthSq()>0){camera.position.add(mv);orbit.target.add(mv);}
+}
+
+// ── GIZMO ─────────────────────────────────────────────────
+function buildGiz() {
+  if(gizGrp){scene.remove(gizGrp);gizGrp=null;}
+  gizGrp=new THREE.Group(); gizGrp.name='__giz__';
+
+  if(curTool==='translate'||curTool==='scale'){
+    [['X',0xff3333],['Y',0x33ff33],['Z',0x3388ff]].forEach(([ax,col])=>{
+      const mat=new THREE.MeshBasicMaterial({color:col,depthTest:false});
+      const sh=new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,1.2,8),mat);
+      const tip=new THREE.Mesh(new THREE.ConeGeometry(0.09,0.28,8),mat);
+      const hit=new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.18,1.8,6),new THREE.MeshBasicMaterial({visible:false,depthTest:false}));
+      sh.renderOrder=999; tip.renderOrder=999; hit.renderOrder=999;
+      if(ax==='X'){sh.rotation.z=-Math.PI/2;sh.position.x=0.6;tip.rotation.z=-Math.PI/2;tip.position.x=1.34;hit.rotation.z=Math.PI/2;hit.position.x=0.9;}
+      if(ax==='Y'){sh.position.y=0.6;tip.position.y=1.34;hit.position.y=0.9;}
+      if(ax==='Z'){sh.rotation.x=Math.PI/2;sh.position.z=0.6;tip.rotation.x=Math.PI/2;tip.position.z=1.34;hit.rotation.x=Math.PI/2;hit.position.z=0.9;}
+      const g=new THREE.Group(); g.userData.axis=ax; g.add(sh,tip,hit); gizGrp.add(g);
+    });
+    if(curTool==='translate'){
+      const pl=new THREE.Mesh(new THREE.PlaneGeometry(0.5,0.5),new THREE.MeshBasicMaterial({color:0xffff44,opacity:0.45,transparent:true,side:THREE.DoubleSide,depthTest:false}));
+      pl.rotation.x=-Math.PI/2; pl.position.set(0.25,0.01,0.25); pl.renderOrder=999;
+      const pg=new THREE.Group(); pg.userData.axis='XZ'; pg.add(pl); gizGrp.add(pg);
+    } else {
+      const sp=new THREE.Mesh(new THREE.SphereGeometry(0.14,8,8),new THREE.MeshBasicMaterial({color:0xffffff,depthTest:false}));
+      sp.renderOrder=999;
+      const sg=new THREE.Group(); sg.userData.axis='XYZ'; sg.add(sp); gizGrp.add(sg);
+    }
+  } else {
+    [['X',0xff3333,new THREE.Euler(0,Math.PI/2,0)],
+     ['Y',0x33ff33,new THREE.Euler(Math.PI/2,0,0)],
+     ['Z',0x3388ff,new THREE.Euler(0,0,0)]].forEach(([ax,col,rot])=>{
+      const mat=new THREE.MeshBasicMaterial({color:col,depthTest:false});
+      const r=new THREE.Mesh(new THREE.TorusGeometry(1,0.04,8,48),mat);
+      const h=new THREE.Mesh(new THREE.TorusGeometry(1,0.18,6,32),new THREE.MeshBasicMaterial({visible:false,depthTest:false}));
+      r.rotation.copy(rot); h.rotation.copy(rot); r.renderOrder=999; h.renderOrder=999;
+      const g=new THREE.Group(); g.userData.axis=ax; g.add(r,h); gizGrp.add(g);
+    });
+  }
+  scene.add(gizGrp);
+}
+
+function syncGiz(){
+  gizGrp.position.copy(selObj.position);
+  gizGrp.scale.setScalar(Math.max(0.1,camera.position.distanceTo(selObj.position)*0.14));
+}
+
+function hitGiz(nx,ny){
+  if(!gizGrp||!selObj) return null;
+  rc.setFromCamera({x:nx,y:ny},camera);
+  const hits=rc.intersectObjects(gizGrp.children,true);
+  if(!hits.length) return null;
+  let o=hits[0].object;
+  while(o&&!o.userData.axis) o=o.parent;
+  return o?o.userData.axis:null;
+}
+
+// ── MOUSE ─────────────────────────────────────────────────
+function onCanvasMD(e){
+  if(e.button!==0) return;
+  mdX=e.clientX; mdY=e.clientY; mdMov=false;
+  if(!selObj) return;
+  const wr=document.getElementById('cwrap').getBoundingClientRect();
+  const nx=((e.clientX-wr.left)/wr.width)*2-1;
+  const ny=-((e.clientY-wr.top)/wr.height)*2+1;
+  const ax=hitGiz(nx,ny);
+  if(!ax) return;
+  gz.on=true; gz.axis=ax; gz.mx=e.clientX; gz.my=e.clientY;
+  gz.pos=selObj.position.clone(); gz.rot=selObj.rotation.clone(); gz.sca=selObj.scale.clone();
+  orbit.enabled=false; e.stopPropagation();
+  window.addEventListener('mousemove',onGizMM);
+  window.addEventListener('mouseup',  onGizMU);
+}
+
+function onGizMM(e){
+  if(Math.abs(e.clientX-mdX)>3||Math.abs(e.clientY-mdY)>3) mdMov=true;
+  if(!gz.on||!selObj) return;
+  const dx=e.clientX-gz.mx,dy=e.clientY-gz.my;
+  const spd=camera.position.distanceTo(selObj.position)*0.003;
+  if(curTool==='translate'){
+    const dv=new THREE.Vector3();
+    if(gz.axis==='X') dv.x=dx*spd;
+    else if(gz.axis==='Y') dv.y=-dy*spd;
+    else if(gz.axis==='Z') dv.z=dx*spd;
+    else if(gz.axis==='XZ'){dv.x=dx*spd;dv.z=dy*spd;}
+    selObj.position.copy(gz.pos).add(dv);
+  } else if(curTool==='rotate'){
+    const r=gz.rot.clone();
+    if(gz.axis==='X') r.x+=dy*0.01;
+    else if(gz.axis==='Y') r.y+=dx*0.01;
+    else if(gz.axis==='Z') r.z+=dx*0.01;
+    selObj.rotation.set(r.x,r.y,r.z);
+  } else {
+    const f=1+dx*0.005;
+    if(gz.axis==='X') selObj.scale.x=Math.max(0.01,gz.sca.x*f);
+    else if(gz.axis==='Y') selObj.scale.y=Math.max(0.01,gz.sca.y*(1-dy*0.005));
+    else if(gz.axis==='Z') selObj.scale.z=Math.max(0.01,gz.sca.z*f);
+    else if(gz.axis==='XYZ'){const u=Math.max(0.01,gz.sca.x*f);selObj.scale.set(u,u,u);}
+  }
+}
+
+function onGizMU(){
+  gz.on=false; orbit.enabled=true;
+  window.removeEventListener('mousemove',onGizMM);
+  window.removeEventListener('mouseup',  onGizMU);
+}
+
+function onCanvasClick(e){
+  if(mdMov||gz.on) return;
+  const wr=document.getElementById('cwrap').getBoundingClientRect();
+  mouse.x=((e.clientX-wr.left)/wr.width)*2-1;
+  mouse.y=-((e.clientY-wr.top)/wr.height)*2+1;
+  rc.setFromCamera(mouse,camera);
+  const hits=rc.intersectObjects(sceneObjs.map(o=>o.mesh),true);
+  if(hits.length){
+    let o=hits[0].object;
+    const f=sceneObjs.find(s=>s.mesh===o||isChild(o,s.mesh));
+    if(f){selObjFn(f);return;}
+  }
+  desel();
+}
+
+function isChild(c,p){let n=c;while(n){if(n===p)return true;n=n.parent;}return false;}
+
+// ── TECLADO ───────────────────────────────────────────────
+function onKey(e){
+  if(e.target.tagName==='INPUT') return;
+  switch(e.key.toLowerCase()){
+    case 'g':setTool('translate');break;
+    case 'r':setTool('rotate');break;
+    case 's':setTool('scale');break;
+    case 'f':frameSel();break;
+    case 'delete':case 'backspace':if(selObj)deleteSel();break;
+    case 'escape':desel();break;
+  }
+}
+
+// ── SELECCIÓN ─────────────────────────────────────────────
+function selObjFn(so){
+  desel(false);
+  selObj=so.mesh;
+  selObj.traverse(c=>{
+    if(c.isMesh){
+      const ol=new THREE.Mesh(c.geometry.clone(),new THREE.MeshBasicMaterial({color:0x7c6aff,side:THREE.BackSide}));
+      ol.scale.setScalar(1.04); ol.name='__ol__'; c.add(ol); outlines.push({c,ol});
+    }
+  });
+  buildGiz(); syncGiz();
+  document.getElementById('selbar').classList.add('vis');
+  document.getElementById('sname').textContent=so.name;
+  document.getElementById('propspanel').style.display='block';
+  document.getElementById('propname').textContent=so.name;
+  document.getElementById('stsel').style.display='';
+  document.getElementById('stsname').textContent=so.name;
+  document.getElementById('gi').classList.add('vis');
+  refreshProps(); refreshTree();
+}
+
+function desel(rg=true){
+  outlines.forEach(({c,ol})=>c.remove(ol)); outlines=[];
+  if(rg&&gizGrp){scene.remove(gizGrp);gizGrp=null;}
+  selObj=null;
+  document.getElementById('selbar').classList.remove('vis');
+  document.getElementById('propspanel').style.display='none';
+  document.getElementById('stsel').style.display='none';
+  document.getElementById('gi').classList.remove('vis');
+  refreshTree();
+}
+
+// ── PROPS ─────────────────────────────────────────────────
+function refreshProps(){
+  if(!selObj) return;
+  const p=selObj.position,r=selObj.rotation,s=selObj.scale;
+  const set=(id,v)=>{if(document.activeElement?.id!==id)document.getElementById(id).value=v;};
+  set('px',p.x.toFixed(3));set('py',p.y.toFixed(3));set('pz',p.z.toFixed(3));
+  const d=180/Math.PI;
+  set('rx',(r.x*d).toFixed(1));set('ry',(r.y*d).toFixed(1));set('rz',(r.z*d).toFixed(1));
+  set('sx',s.x.toFixed(3));set('sy',s.y.toFixed(3));set('sz',s.z.toFixed(3));
+  set('su',((s.x+s.y+s.z)/3).toFixed(3));
+  document.getElementById('gip').textContent=`Pos: ${p.x.toFixed(2)}, ${p.y.toFixed(2)}, ${p.z.toFixed(2)}`;
+  document.getElementById('gir').textContent=`Rot: ${(r.x*d).toFixed(0)}°, ${(r.y*d).toFixed(0)}°, ${(r.z*d).toFixed(0)}°`;
+  document.getElementById('gis').textContent=`Esc: ${s.x.toFixed(2)}, ${s.y.toFixed(2)}, ${s.z.toFixed(2)}`;
+}
+
+function applyProps(){
+  if(!selObj) return;
+  selObj.position.set(+document.getElementById('px').value||0,+document.getElementById('py').value||0,+document.getElementById('pz').value||0);
+  const d=Math.PI/180;
+  selObj.rotation.set((+document.getElementById('rx').value||0)*d,(+document.getElementById('ry').value||0)*d,(+document.getElementById('rz').value||0)*d);
+  selObj.scale.set(+document.getElementById('sx').value||1,+document.getElementById('sy').value||1,+document.getElementById('sz').value||1);
+}
+
+function applyUniform(v){
+  if(!selObj) return;
+  const s=parseFloat(v)||1; selObj.scale.set(s,s,s);
+  ['sx','sy','sz'].forEach(id=>document.getElementById(id).value=s.toFixed(3));
+}
+
+// ── ARCHIVOS ──────────────────────────────────────────────
+function onDrop(e){
+  e.preventDefault(); document.getElementById('dropzone').classList.remove('over');
+  const files=[]; const items=e.dataTransfer.items;
+  const re=en=>new Promise(res=>{
+    if(en.isFile) en.file(f=>{files.push(f);res();});
+    else if(en.isDirectory){const rd=en.createReader();const ra=()=>rd.readEntries(es=>{if(!es.length){res();return;}Promise.all(es.map(re)).then(ra);});ra();}
+    else res();
+  });
+  const ps=[];
+  for(let i=0;i<items.length;i++){const en=items[i].webkitGetAsEntry();if(en)ps.push(re(en));}
+  Promise.all(ps).then(()=>procFiles(files));
+}
+
+function onFileInp(e){procFiles(Array.from(e.target.files));e.target.value='';}
+
+function procFiles(files){
+  DBG.log('Archivos recibidos: '+files.length);
+  files.forEach(f=>{
+    const ext=f.name.split('.').pop().toLowerCase();
+    DBG.log('  → '+f.name+' ('+Math.round(f.size/1024)+' KB) ext:'+ext);
+    if(['glb','gltf'].includes(ext)) readGLB(f);
+    else if(['jpg','jpeg','png'].includes(ext)) readImg(f);
+    else DBG.log('  Extensión ignorada: '+ext,'#ffaa44');
+  });
+}
+
+function readGLB(file){
+  DBG.log('Leyendo GLB: '+file.name);
+  const fr=new FileReader();
+  fr.onload=ev=>{
+    const buf=ev.target.result;
+    DBG.log('✓ FileReader OK — '+Math.round(buf.byteLength/1024)+' KB','#4fffb0');
+    // Verificar header GLB (magic: 0x46546C67 = "glTF")
+    const view=new DataView(buf);
+    const magic=view.getUint32(0,true);
+    if(magic===0x46546C67){
+      DBG.log('✓ Header GLB válido (glTF magic OK)','#4fffb0');
+    } else {
+      DBG.log('⚠ Header inesperado: 0x'+magic.toString(16)+' (¿es realmente un GLB?)','#ffaa44');
+    }
+    assetLib.push({name:file.name.replace(/\.[^.]+$/,''),type:'glb',data:buf});
+    renderLib();
+  };
+  fr.onerror=e=>DBG.log('✗ FileReader ERROR: '+e.target.error,'#ff6b6b');
+  fr.readAsArrayBuffer(file);
+}
+
+function readImg(file){
+  const fr=new FileReader();
+  fr.onload=ev=>{assetLib.push({name:file.name.replace(/\.[^.]+$/,''),type:'img',data:ev.target.result});renderLib();};
+  fr.readAsDataURL(file);
+}
+
+function renderLib(){
+  const list=document.getElementById('alist'); list.innerHTML='';
+  assetLib.forEach((a,i)=>{
+    const d=document.createElement('div'); d.className='aitem';
+    d.innerHTML=`<div class="aico">${a.type==='glb'?'◈':'🖼'}</div>`+
+      `<div class="ainf"><div class="aname">${a.name}</div><div class="atype">${a.type.toUpperCase()}</div></div>`+
+      `<div class="aadd" onclick="addToScene(${i})" title="Añadir a escena">+</div>`;
+    list.appendChild(d);
+  });
+}
+
+// ── AÑADIR A ESCENA ───────────────────────────────────────
+function addToScene(i){
+  const a=assetLib[i];
+  DBG.log('addToScene('+i+') tipo:'+a.type+' nombre:'+a.name);
+  if(a.type==='glb') addGLB(a,i);
+  else addImg(a,i);
+}
+
+function addGLB(asset,idx){
+  if(!gltfLoader){
+    DBG.log('✗ gltfLoader es NULL','#ff6b6b');
+    alert('GLTFLoader no disponible. Abre Debug para ver el error.');
+    return;
+  }
+  DBG.log('Iniciando gltfLoader.load() para: '+asset.name);
+  showLdr(true,'Cargando modelo...');
+
+  const blob = new Blob([asset.data]);
+  const url  = URL.createObjectURL(blob);
+  DBG.log('Blob URL: '+url.substring(0,50));
+
+  gltfLoader.load(
+    url,
+    gltf=>{
+      URL.revokeObjectURL(url);
+      DBG.log('✓ gltf.scene recibido','#4fffb0');
+
+      const mesh=gltf.scene;
+      let meshCount=0;
+      mesh.traverse(c=>{
+        if(c.isMesh){
+          meshCount++;
+          c.castShadow=true; c.receiveShadow=true;
+          c.frustumCulled=false;
+          if(c.material){
+            const mats=Array.isArray(c.material)?c.material:[c.material];
+            mats.forEach(m=>{m.side=THREE.DoubleSide;m.needsUpdate=true;});
+          }
+        }
+      });
+      DBG.log('Meshes encontrados: '+meshCount, meshCount>0?'#4fffb0':'#ff6b6b');
+
+      const box=new THREE.Box3().setFromObject(mesh);
+      const sz=box.getSize(new THREE.Vector3());
+      const ct=box.getCenter(new THREE.Vector3());
+      const maxD=Math.max(sz.x,sz.y,sz.z)||1;
+      const sc=2/maxD;
+      mesh.scale.setScalar(sc);
+      mesh.position.set(-ct.x*sc,-box.min.y*sc,-ct.z*sc);
+      DBG.log('Size: '+sz.x.toFixed(2)+','+sz.y.toFixed(2)+','+sz.z.toFixed(2)+' scale:'+sc.toFixed(3));
+
+      const off=sceneObjs.length;
+      mesh.position.x+=(off%5)*3;
+      mesh.position.z+=Math.floor(off/5)*3;
+      scene.add(mesh);
+      DBG.log('✓ Añadido a scene. Pos:'+mesh.position.x.toFixed(2)+','+mesh.position.y.toFixed(2)+','+mesh.position.z.toFixed(2),'#4fffb0');
+
+      if(gltf.animations&&gltf.animations.length){
+        const mx=new THREE.AnimationMixer(mesh);
+        gltf.animations.forEach(cl=>mx.clipAction(cl).play());
+        mixers.push(mx);
+        DBG.log('Animaciones: '+gltf.animations.length);
+      }
+
+      const so={mesh,name:asset.name,type:'glb',assetIdx:idx};
+      sceneObjs.push(so);
+      refreshTree(); refreshStat(); selObjFn(so);
+      showLdr(false);
+    },
+    xhr=>{
+      if(xhr.lengthComputable){
+        const pct=Math.round(xhr.loaded/xhr.total*100);
+        showLdr(true,'Cargando '+pct+'%');
+      }
+    },
+    err=>{
+      URL.revokeObjectURL(url);
+      showLdr(false);
+      const msg=err.message||String(err);
+      DBG.log('✗ ERROR en gltfLoader: '+msg,'#ff6b6b');
+      console.error('GLB load error:',err);
+      alert('Error cargando GLB:\n'+msg);
+    }
+  );
+}
+
+function addImg(asset,idx){
+  const tex=new THREE.TextureLoader().load(asset.data);
+  const img=new Image();
+  img.onload=()=>{
+    const ar=img.width/img.height;
+    const mesh=new THREE.Mesh(new THREE.PlaneGeometry(2*ar,2),new THREE.MeshStandardMaterial({map:tex,side:THREE.DoubleSide}));
+    mesh.castShadow=true;
+    const off=sceneObjs.length;
+    mesh.position.set((off%5)*3,1,Math.floor(off/5)*3);
+    scene.add(mesh);
+    const so={mesh,name:asset.name,type:'img',assetIdx:idx};
+    sceneObjs.push(so);
+    refreshTree(); refreshStat(); selObjFn(so);
+  };
+  img.src=asset.data;
+}
+
+// ── BORRAR ────────────────────────────────────────────────
+function deleteSel(){
+  if(!selObj) return;
+  const i=sceneObjs.findIndex(o=>o.mesh===selObj);
+  if(i!==-1){scene.remove(selObj);sceneObjs.splice(i,1);}
+  desel(); refreshTree(); refreshStat();
+}
+
+function clearScene(){
+  if(!confirm('¿Borrar toda la escena?')) return;
+  sceneObjs.forEach(o=>scene.remove(o.mesh));
+  sceneObjs=[]; mixers=[]; desel(); refreshTree(); refreshStat();
+}
+
+// ── ÁRBOL ─────────────────────────────────────────────────
+function refreshTree(){
+  const t=document.getElementById('stree'); t.innerHTML='';
+  if(!sceneObjs.length){t.innerHTML='<div style="padding:12px 8px;font-size:11px;color:var(--text2);text-align:center;">Escena vacía</div>';return;}
+  sceneObjs.forEach(o=>{
+    const d=document.createElement('div');
+    d.className='titem'+(o.mesh===selObj?' sel':'');
+    d.innerHTML=`<div class="tdot"></div><span style="font-size:10px;color:var(--text2);margin-right:4px;">${o.type==='glb'?'◈':'▣'}</span>${o.name}`;
+    d.onclick=()=>selObjFn(o);
+    t.appendChild(d);
+  });
+}
+function refreshStat(){document.getElementById('stcount').textContent=sceneObjs.length;}
+
+// ── SKYBOX ────────────────────────────────────────────────
+function setSky(name){
+  curSky=name;
+  document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('on'));
+  const btn=document.getElementById('sky-'+name); if(btn)btn.classList.add('on');
+  buildSky(SKYCFG[name]);
+}
+
+function buildSky(cfg){
+  if(skyMesh){scene.remove(skyMesh);skyMesh.geometry.dispose();skyMesh.material.dispose();skyMesh=null;}
+  if(starMesh){scene.remove(starMesh);starMesh.geometry.dispose();starMesh.material.dispose();starMesh=null;}
+  skyMesh=new THREE.Mesh(new THREE.SphereGeometry(900,32,16),new THREE.ShaderMaterial({
+    uniforms:{tc:{value:new THREE.Color(cfg.top)},bc:{value:new THREE.Color(cfg.bot)},off:{value:200},ex:{value:0.4}},
+    vertexShader:`varying vec3 vW;void main(){vW=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
+    fragmentShader:`uniform vec3 tc,bc;uniform float off,ex;varying vec3 vW;void main(){float h=normalize(vW+off).y;gl_FragColor=vec4(mix(bc,tc,max(pow(max(h,0.),ex),0.)),1.);}`,
+    side:THREE.BackSide
+  }));
+  scene.add(skyMesh);
+  if(cfg.stars){
+    const pos=[];
+    for(let i=0;i<3000;i++){const t=Math.random()*Math.PI*2,p=Math.acos(2*Math.random()-1),r=800+Math.random()*50;pos.push(r*Math.sin(p)*Math.cos(t),r*Math.cos(p),r*Math.sin(p)*Math.sin(t));}
+    const g=new THREE.BufferGeometry(); g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+    starMesh=new THREE.Points(g,new THREE.PointsMaterial({color:0xffffff,size:1.5,sizeAttenuation:true}));
+    scene.add(starMesh);
+  }
+  scene.children.filter(c=>c.isAmbientLight).forEach(l=>{l.color.set(cfg.amb);l.intensity=cfg.ai;});
+  scene.fog=new THREE.Fog(cfg.fog,200,900);
+}
+
+function onSkyImg(e){
+  const file=e.target.files[0]; if(!file) return;
+  const fr=new FileReader();
+  fr.onload=ev=>{
+    if(skyMesh){scene.remove(skyMesh);skyMesh.geometry.dispose();skyMesh.material.dispose();skyMesh=null;}
+    if(starMesh){scene.remove(starMesh);starMesh.geometry.dispose();starMesh.material.dispose();starMesh=null;}
+    const tex=new THREE.TextureLoader().load(ev.target.result);
+    tex.encoding=THREE.sRGBEncoding;
+    skyMesh=new THREE.Mesh(new THREE.SphereGeometry(900,48,24),new THREE.MeshBasicMaterial({map:tex,side:THREE.BackSide}));
+    scene.add(skyMesh);
+    document.querySelectorAll('.sbtn').forEach(b=>b.classList.remove('on'));
+    e.target.value='';
+  };
+  fr.readAsDataURL(file);
+}
+
+// ── TOOLS / CAM ───────────────────────────────────────────
+function setTool(t){
+  curTool=t;
+  document.getElementById('bmove').classList.toggle('on',t==='translate');
+  document.getElementById('brotate').classList.toggle('on',t==='rotate');
+  document.getElementById('bscale').classList.toggle('on',t==='scale');
+  document.getElementById('sttool').textContent=t==='translate'?'Mover':t==='rotate'?'Rotar':'Escalar';
+  if(selObj) buildGiz();
+}
+
+function resetCam(){
+  camera.position.set(5,3,8); orbit.target.set(0,0,0);
+  const tmp=new THREE.Vector3(5,3,8).sub(orbit.target);
+  orbit.sph.setFromVector3(tmp);
+}
+
+function frameSel(){
+  if(!selObj){resetCam();return;}
+  const box=new THREE.Box3().setFromObject(selObj);
+  const c=box.getCenter(new THREE.Vector3()),s=box.getSize(new THREE.Vector3());
+  const m=Math.max(s.x,s.y,s.z)||2;
+  orbit.target.copy(c);
+  camera.position.copy(c).add(new THREE.Vector3(m*1.5,m*0.8,m*1.5));
+  orbit.sph.setFromVector3(new THREE.Vector3().subVectors(camera.position,orbit.target));
+}
+
+function onResize(){
+  const w=document.getElementById('cwrap');
+  camera.aspect=w.clientWidth/w.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w.clientWidth,w.clientHeight);
+}
+
+// ── LOADER UI ─────────────────────────────────────────────
+function showLdr(v,txt='Cargando...'){
+  const el=document.getElementById('loader');
+  el.classList.toggle('hide',!v);
+  el.querySelector('.ltxt').textContent=txt;
+}
+
+// ── WEBXR ─────────────────────────────────────────────────
+async function checkVR(){
+  const btn=document.getElementById('bvr');
+  if(!navigator.xr){btn.title='WebXR no disponible';return;}
+  try{const ok=await navigator.xr.isSessionSupported('immersive-vr');
+    if(ok){btn.classList.remove('vroff');btn.title='Entrar VR';}
+    else btn.title='Gafas VR no detectadas';
+  }catch(e){}
+}
+
+async function toggleVR(){
+  const btn=document.getElementById('bvr');
+  if(!navigator.xr){alert('WebXR no disponible.');return;}
+  if(vrSess){await vrSess.end();return;}
+  try{
+    vrSess=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','bounded-floor','hand-tracking']});
+    renderer.xr.enabled=true; renderer.xr.setSession(vrSess);
+    btn.textContent='◉ Salir VR'; btn.classList.add('vron');
+    vrSess.addEventListener('end',()=>{vrSess=null;renderer.xr.enabled=false;btn.textContent='◉ Entrar VR';btn.classList.remove('vron');onResize();});
+  }catch(err){alert('Error VR:\n'+err.message);}
+}
+
+// ── EXPORT ────────────────────────────────────────────────
+function ab2b64(buf){let s='';const b=new Uint8Array(buf);for(let i=0;i<b.length;i++)s+=String.fromCharCode(b[i]);return btoa(s);}
+
+async function exportScene(){
+  if(!sceneObjs.length){alert('Escena vacía.');return;}
+  showLdr(true,'Generando...');
+  const assets={};
+  sceneObjs.forEach(o=>{
+    if(assets[o.assetIdx]) return;
+    const a=assetLib[o.assetIdx];
+    assets[o.assetIdx]={type:a.type,name:a.name,b64:a.type==='glb'?ab2b64(a.data):a.data};
+  });
+  const sd=sceneObjs.map(o=>({ai:o.assetIdx,name:o.name,type:o.type,pos:o.mesh.position.toArray(),rot:[o.mesh.rotation.x,o.mesh.rotation.y,o.mesh.rotation.z],sca:o.mesh.scale.toArray()}));
+  const cfg=SKYCFG[curSky]||SKYCFG.city;
+  let sc='';
+  Object.keys(assets).forEach(k=>{const a=assets[k];sc+=`<script id="a${k}" type="${a.type==='glb'?'application/octet-stream':'image/xb64'}" data-n="${a.name}">${a.b64}<\/script>\n`;});
+
+  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>VR Scene</title>
+<style>*{margin:0;padding:0}body{background:#000;overflow:hidden}canvas{display:block;width:100vw;height:100vh}
+#info{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.65);color:#fff;padding:5px 14px;border-radius:20px;font:11px monospace;pointer-events:none}
+#vrb{position:fixed;bottom:12px;right:12px;background:rgba(0,0,0,.7);color:#ffc832;border:1px solid #ffc832;padding:7px 16px;border-radius:7px;font:12px monospace;cursor:pointer;display:none}
+#ldr{position:fixed;inset:0;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px}
+.sp{width:36px;height:36px;border:2px solid #333;border-top-color:#7c6aff;border-radius:50%;animation:r .8s linear infinite}@keyframes r{to{transform:rotate(360deg)}}.st{color:#666;font:11px monospace}</style></head><body>
+<div id="ldr"><div class="sp"></div><div class="st">Cargando...</div></div>
+${sc}<canvas id="c"></canvas>
+<div id="info">Der: rotar · Scroll: zoom · Med: pan · WASD: mover</div>
+<button id="vrb" onclick="tVR()">◉ Entrar VR</button>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"><\/script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>
+<script>
+const DATA=${JSON.stringify(sd)};
+const ren=new THREE.WebGLRenderer({canvas:document.getElementById('c'),antialias:true});
+ren.setPixelRatio(Math.min(devicePixelRatio,2));ren.setSize(innerWidth,innerHeight);
+ren.shadowMap.enabled=true;ren.outputEncoding=THREE.sRGBEncoding;ren.toneMapping=THREE.ACESFilmicToneMapping;
+const sc=new THREE.Scene();sc.fog=new THREE.Fog(${cfg.fog},200,900);
+const cam=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,.01,10000);cam.position.set(5,3,8);
+const ctrl=new THREE.OrbitControls(cam,ren.domElement);ctrl.enableDamping=true;ctrl.dampingFactor=0.1;
+ctrl.mouseButtons={LEFT:null,MIDDLE:THREE.MOUSE.PAN,RIGHT:THREE.MOUSE.ROTATE};
+sc.add(new THREE.AmbientLight(${cfg.amb},${cfg.ai}));
+const dl=new THREE.DirectionalLight(0xffffff,1.2);dl.position.set(10,20,10);dl.castShadow=true;sc.add(dl);
+sc.add(new THREE.GridHelper(40,40,0x222233,0x111122));
+const sm=new THREE.Mesh(new THREE.SphereGeometry(900,32,16),new THREE.ShaderMaterial({uniforms:{tc:{value:new THREE.Color(${cfg.top})},bc:{value:new THREE.Color(${cfg.bot})},off:{value:200},ex:{value:.4}},vertexShader:'varying vec3 vW;void main(){vW=(modelMatrix*vec4(position,1.)).xyz;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'uniform vec3 tc,bc;uniform float off,ex;varying vec3 vW;void main(){float h=normalize(vW+off).y;gl_FragColor=vec4(mix(bc,tc,max(pow(max(h,0.),ex),0.)),1.);}',side:THREE.BackSide}));sc.add(sm);
+const ldr=new THREE.GLTFLoader();const mx=[];
+function b2a(b){const s=atob(b),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u.buffer;}
+let done=0,tot=DATA.length;const keys={};
+window.addEventListener('keydown',e=>keys[e.key.toLowerCase()]=true);
+window.addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+DATA.forEach(o=>{
+  const el=document.getElementById('a'+o.ai);if(!el){done++;chk();return;}
+  const b64=el.textContent.trim();
+  if(el.type==='application/octet-stream'){
+    const url=URL.createObjectURL(new Blob([b2a(b64)]));
+    ldr.load(url,gltf=>{const m=gltf.scene;m.position.fromArray(o.pos);m.rotation.set(...o.rot);m.scale.fromArray(o.sca);m.traverse(c=>{if(c.isMesh){c.castShadow=true;c.receiveShadow=true;c.frustumCulled=false;}});sc.add(m);if(gltf.animations&&gltf.animations.length){const mix=new THREE.AnimationMixer(m);gltf.animations.forEach(a=>mix.clipAction(a).play());mx.push(mix);}URL.revokeObjectURL(url);done++;chk();},undefined,e=>{URL.revokeObjectURL(url);console.error(e);done++;chk();});
+  }else{const t=new THREE.TextureLoader().load(b64);const img=new Image();img.onload=()=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(2*(img.width/img.height),2),new THREE.MeshStandardMaterial({map:t,side:THREE.DoubleSide}));m.position.fromArray(o.pos);m.rotation.set(...o.rot);m.scale.fromArray(o.sca);sc.add(m);done++;chk();};img.src=b64;}
+});
+function chk(){if(done>=tot)document.getElementById('ldr').style.display='none';}
+if(!tot)document.getElementById('ldr').style.display='none';
+let vrs=null;
+if(navigator.xr)navigator.xr.isSessionSupported('immersive-vr').then(ok=>{if(ok)document.getElementById('vrb').style.display='block';});
+async function tVR(){if(vrs){await vrs.end();return;}vrs=await navigator.xr.requestSession('immersive-vr',{optionalFeatures:['local-floor','bounded-floor']});ren.xr.enabled=true;ren.xr.setSession(vrs);document.getElementById('vrb').textContent='◉ Salir VR';vrs.addEventListener('end',()=>{vrs=null;ren.xr.enabled=false;document.getElementById('vrb').textContent='◉ Entrar VR';});}
+const clk=new THREE.Clock();
+function loop(){requestAnimationFrame(loop);const dt=clk.getDelta();const spd=8*dt;const fwd=new THREE.Vector3();cam.getWorldDirection(fwd);fwd.y=0;fwd.normalize();const rgt=new THREE.Vector3().crossVectors(fwd,cam.up).normalize();const mv=new THREE.Vector3();if(keys['w']||keys['arrowup'])mv.addScaledVector(fwd,spd);if(keys['s']||keys['arrowdown'])mv.addScaledVector(fwd,-spd);if(keys['a']||keys['arrowleft'])mv.addScaledVector(rgt,-spd);if(keys['d']||keys['arrowright'])mv.addScaledVector(rgt,spd);if(mv.lengthSq()){cam.position.add(mv);ctrl.target.add(mv);}mx.forEach(m=>m.update(dt));ctrl.update();ren.render(sc,cam);}
+loop();
+window.addEventListener('resize',()=>{cam.aspect=innerWidth/innerHeight;cam.updateProjectionMatrix();ren.setSize(innerWidth,innerHeight);});
+<\/script></body></html>`;
+
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  a.download='vr-scene.html'; a.click();
+  showLdr(false);
+}
+
+// ══════════════════════════════════════════════════════════
+// ARRANQUE — esperar a que el DOM esté listo
+// ══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', ()=>{
+  // Pequeño delay para asegurar que los scripts del <head> terminaron
+  setTimeout(init, 100);
+});
+</script>
+</body>
+</html>
